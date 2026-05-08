@@ -1,0 +1,32 @@
+ChangeIcon.tsx:168 
+ Warning: Each child in a list should have a unique "key" prop.
+
+Check the render method of `ChangeIcon`. See https://reactjs.org/link/warning-keys for more information.
+    at http://localhost:4000/node_modules/.vite/deps/chunk-6B7JNUFJ.js?v=829cca2a:1293:45
+    at ChangeIcon (http://localhost:4000/src/component/FileManager/Dialogs/ChangeIcon.tsx?t=1769690370670:59:19)
+    at Dialogs (http://localhost:4000/src/component/FileManager/Dialogs/Dialogs.tsx?t=1769690370670:47:31)
+    at DndProvider2 (http://localhost:4000/node_modules/.vite/deps/react-dnd.js?v=829cca2a:1505:9)
+    at div
+    at http://localhost:4000/node_modules/.vite/deps/chunk-6B7JNUFJ.js?v=829cca2a:1293:45
+    at Box3 (http://localhost:4000/node_modules/.vite/deps/chunk-3NKBC3R6.js?v=829cca2a:1303:19)
+    at NavBarFrame (http://localhost:4000/src/component/Frame/NavBarFrame.tsx?t=1769690370670:51:24)
+    at AutoNavbarFrame (http://localhost:4000/src/component/Frame/NavBarFrame.tsx?t=1769690370670:36:18)
+    at RenderedRoute (http://localhost:4000/node_modules/.vite/deps/chunk-SGT64FLK.js?v=829cca2a:3538:5)
+    at Outlet (http://localhost:4000/node_modules/.vite/deps/chunk-SGT64FLK.js?v=829cca2a:3901:26)
+    at SnackbarProvider2 (http://localhost:4000/node_modules/.vite/deps/notistack.js?v=829cca2a:1226:24)
+    at AppContent (http://localhost:4000/src/App.tsx?t=1769690370670:299:19)
+    at DefaultPropsProvider (http://localhost:4000/node_modules/.vite/deps/chunk-3NKBC3R6.js?v=829cca2a:1719:3)
+    at RtlProvider (http://localhost:4000/node_modules/.vite/deps/chunk-3NKBC3R6.js?v=829cca2a:1695:3)
+    at ThemeProvider (http://localhost:4000/node_modules/.vite/deps/chunk-3NKBC3R6.js?v=829cca2a:1651:5)
+    at ThemeProvider2 (http://localhost:4000/node_modules/.vite/deps/chunk-3NKBC3R6.js?v=829cca2a:1802:5)
+    at ThemeProviderNoVars (http://localhost:4000/node_modules/.vite/deps/chunk-SDKPEFXV.js?v=829cca2a:277:10)
+    at ThemeProvider (http://localhost:4000/node_modules/.vite/deps/chunk-SDKPEFXV.js?v=829cca2a:359:3)
+    at Suspense
+    at App (http://localhost:4000/src/App.tsx?t=1769690370670:210:19)
+    at RenderedRoute (http://localhost:4000/node_modules/.vite/deps/chunk-SGT64FLK.js?v=829cca2a:3538:5)
+    at RenderErrorBoundary (http://localhost:4000/node_modules/.vite/deps/chunk-SGT64FLK.js?v=829cca2a:3498:5)
+    at DataRoutes (http://localhost:4000/node_modules/.vite/deps/chunk-SGT64FLK.js?v=829cca2a:4630:5)
+    at Router (http://localhost:4000/node_modules/.vite/deps/chunk-SGT64FLK.js?v=829cca2a:3908:15)
+    at RouterProvider (http://localhost:4000/node_modules/.vite/deps/chunk-SGT64FLK.js?v=829cca2a:4447:5)
+    at http://localhost:4000/node_modules/.vite/deps/chunk-ENI65LOB.js?v=829cca2a:108:13
+    at Provider (http://localhost:4000/node_modules/.vite/deps/react-redux.js?v=829cca2a:1089:3)
