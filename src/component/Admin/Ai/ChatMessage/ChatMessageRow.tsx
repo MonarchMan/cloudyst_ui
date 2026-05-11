@@ -1,4 +1,4 @@
-import { Checkbox, IconButton, Skeleton, TableCell, TableRow } from "@mui/material";
+import { Box, Checkbox, IconButton, Link, Skeleton, TableCell, TableRow } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { batchDeleteChatMessages } from "../../../../api/api";
@@ -7,6 +7,7 @@ import { useAppDispatch } from "../../../../redux/hooks";
 import { confirmOperation } from "../../../../redux/thunks/dialog";
 import { NoWrapTableCell, NoWrapTypography } from "../../../Common/StyledComponents";
 import Delete from "../../../Icons/Delete";
+import UserAvatar from "../../../Common/User/UserAvatar";
 
 export interface ChatMessageRowProps {
   message?: AiChatMessage;
@@ -14,21 +15,36 @@ export interface ChatMessageRowProps {
   deleting?: boolean;
   selected?: boolean;
   onDelete?: () => void;
+  onDetails?: (id: number) => void;
   onSelect?: (id: number) => void;
+  openUserDialog?: (id: number) => void;
 }
 
-const ChatMessageRow = ({ message, loading, deleting, selected, onDelete, onSelect }: ChatMessageRowProps) => {
+const ChatMessageRow = ({
+  message,
+  loading,
+  deleting,
+  selected,
+  onDelete,
+  onDetails,
+  onSelect,
+  openUserDialog
+}: ChatMessageRowProps) => {
   const { t } = useTranslation("dashboard");
   const dispatch = useAppDispatch();
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const onRowClick = () => {
+    onDetails?.(message?.message.id ?? 0);
+  };
+
   const onDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    dispatch(confirmOperation(t("message.confirmDelete", { message: message?.id }))).then(() => {
-      if (message?.id) {
+    dispatch(confirmOperation(t("message.confirmDelete", { message: message?.message.id }))).then(() => {
+      if (message?.message.id) {
         setDeleteLoading(true);
-        dispatch(batchDeleteChatMessages({ ids: [message.id] }))
+        dispatch(batchDeleteChatMessages({ ids: [message.message.id] }))
           .then(() => {
             onDelete?.();
           })
@@ -42,7 +58,13 @@ const ChatMessageRow = ({ message, loading, deleting, selected, onDelete, onSele
   const onSelectClick = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    onSelect?.(message?.id ?? 0);
+    onSelect?.(message?.message.id ?? 0);
+  };
+
+  const userClicked = (e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    openUserDialog?.(message?.message.user_id ?? 0);
   };
 
   if (loading) {
@@ -83,7 +105,7 @@ const ChatMessageRow = ({ message, loading, deleting, selected, onDelete, onSele
   }
 
   return (
-    <TableRow hover key={message?.id} sx={{ cursor: "pointer" }} selected={selected}>
+    <TableRow hover key={message?.message.id} sx={{ cursor: "pointer" }} selected={selected}>
       <TableCell padding="checkbox">
         <Checkbox
           disabled={deleting}
@@ -95,29 +117,48 @@ const ChatMessageRow = ({ message, loading, deleting, selected, onDelete, onSele
         />
       </TableCell>
       <NoWrapTableCell>
-        <NoWrapTypography variant="inherit">{message?.id}</NoWrapTypography>
+        <NoWrapTypography variant="inherit">{message?.message.id}</NoWrapTypography>
       </NoWrapTableCell>
       <NoWrapTableCell>
-        <NoWrapTypography variant="inherit">{message?.conversation_id}</NoWrapTypography>
+        <NoWrapTypography variant="inherit">{message?.message.conversation_id}</NoWrapTypography>
+      </NoWrapTableCell>
+      
+      <NoWrapTableCell>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <UserAvatar
+            sx={{ width: 24, height: 24 }}
+            overwriteTextSize
+            user={{
+              id: message?.owner_info?.id ?? "",
+              nickname: message?.owner_info?.nickname ?? "",
+              created_at: message?.owner_info?.created_at ?? "",
+            }}
+          />
+          <NoWrapTypography variant="inherit">
+            <Link
+              sx={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              onClick={userClicked}
+              underline="hover"
+              href="#/"
+            >
+              {message?.owner_info?.nickname}
+            </Link>
+          </NoWrapTypography>
+        </Box>
       </NoWrapTableCell>
       <NoWrapTableCell>
-        <NoWrapTypography variant="inherit">{message?.user_id}</NoWrapTypography>
+        <NoWrapTypography variant="inherit">{message?.message.model}</NoWrapTypography>
       </NoWrapTableCell>
       <NoWrapTableCell>
-        <NoWrapTypography variant="inherit">{message?.role_id}</NoWrapTypography>
-      </NoWrapTableCell>
-      <NoWrapTableCell>
-        <NoWrapTypography variant="inherit">{message?.model_id}</NoWrapTypography>
-      </NoWrapTableCell>
-      <NoWrapTableCell>
-        <NoWrapTypography variant="inherit">{message?.model}</NoWrapTypography>
-      </NoWrapTableCell>
-      <NoWrapTableCell>
-        <NoWrapTypography variant="inherit">{message?.type}</NoWrapTypography>
+        <NoWrapTypography variant="inherit">{message?.message.type}</NoWrapTypography>
       </NoWrapTableCell>
       <NoWrapTableCell>
         <NoWrapTypography variant="inherit" sx={{ maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis" }}>
-          {message?.content}
+          {message?.message.content}
         </NoWrapTypography>
       </NoWrapTableCell>
       <NoWrapTableCell>

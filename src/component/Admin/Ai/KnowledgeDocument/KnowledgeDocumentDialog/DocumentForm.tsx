@@ -1,12 +1,12 @@
-import { useMediaQuery, SelectChangeEvent, Box, Grid2 as Grid, Typography, FormControl, ListItemText, useTheme, Link } from "@mui/material";
+import { useMediaQuery, Box, Grid2 as Grid, Typography, useTheme } from "@mui/material";
 import { useContext, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Status } from "../../../../../api/dashboard";
-import { DenseFilledTextField, DenseSelect } from "../../../../Common/StyledComponents";
-import { SquareMenuItem } from "../../../../FileManager/ContextMenu/ContextMenu";
+import { DenseFilledTextField } from "../../../../Common/StyledComponents";
 import SettingForm from "../../../../Pages/Setting/SettingForm";
 import { DocumentDialogContext } from "./DocumentDialog";
 import KnowledgeDialog from "../../Knowledge/KnowledgeDialog/KnowledgeDialog";
+import { AiStatusSelect } from "../../AiSelects";
 
 const DocumentForm = () => {
   const theme = useTheme();
@@ -34,11 +34,6 @@ const DocumentForm = () => {
   const onSegmentMaxTokensChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
     setDocument((prev) => ({ ...prev, temperature: Number(e.target.value)}))
-  }, [setDocument]);
-
-  const onStatusChange = useCallback(
-    (e: SelectChangeEvent<unknown>) => {
-    setDocument((prev) => ({ ...prev, status: Number(e.target.value) as Status}))
   }, [setDocument]);
 
   return (
@@ -96,20 +91,10 @@ const DocumentForm = () => {
           </SettingForm>
 
           <SettingForm title={t("common.status")} noContainer lgWidth={6}>
-            <FormControl fullWidth>
-              <DenseSelect value={values.status} onChange={onStatusChange}>
-                <SquareMenuItem value={1}>
-                  <ListItemText slotProps={{ primary: {variant: "body2" }}}>
-                    {t("common.status_active")}
-                  </ListItemText>
-                </SquareMenuItem>
-                <SquareMenuItem value={2}>
-                  <ListItemText slotProps={{ primary: {variant: "body2" }}}>
-                    {t("common.status_inactive")}
-                  </ListItemText>
-                </SquareMenuItem>
-              </DenseSelect>
-            </FormControl>
+            <AiStatusSelect
+              value={values.status}
+              onChange={(status) => setDocument((prev) => ({ ...prev, status: status as Status }))}
+            />
           </SettingForm>
 
           <SettingForm title={t("document.createdAt")} noContainer lgWidth={6}>

@@ -1,15 +1,16 @@
-import { Box, Button, Checkbox, FormControl, ListItemText, Popover, PopoverProps, Stack, styled } from "@mui/material";
+import { Box, Button, Checkbox, Popover, PopoverProps, Stack, styled } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { DenseFilledTextField, DenseSelect, SmallFormControlLabel } from "../../../Common/StyledComponents";
-import { SquareMenuItem } from "../../../FileManager/ContextMenu/ContextMenu";
+import { DenseFilledTextField, SmallFormControlLabel } from "../../../Common/StyledComponents";
 import SettingForm from "../../../Pages/Setting/SettingForm";
+import { AiStatusSelect } from "../AiSelects";
+import { AiStatusFilterValue } from "../constants";
 
 export interface KnowledgeFilterPopoverProps extends PopoverProps {
   name: string,
   setName: (name: string) => void;
-  status: number,
-  setStatus: (status: number) => void;
+  status: AiStatusFilterValue,
+  setStatus: (status: AiStatusFilterValue) => void;
   isPublic: boolean,
   setIsPublic: (isPublic: boolean) => void;
   isMaster: boolean,
@@ -66,8 +67,12 @@ const KnowledgeFilterPopover = ({
   
   // Reset filters and close popover
   const handleResetFilters = () => {
+    setName("");
+    setStatus("");
+    setIsPublic(false);
+    setIsMaster(false);
     setLocalName("");
-    setLocalStatus(0);
+    setLocalStatus("");
     setLocalIsPublic(false);
     setLocalIsMaster(false);
     onClose?.({}, "backdropClick");
@@ -108,28 +113,7 @@ const KnowledgeFilterPopover = ({
         </SettingForm>
 
         <SettingForm title={t("common.status")} noContainer lgWidth={12}>
-          <FormControl fullWidth>
-            <DenseSelect
-              value={localStatus === undefined ? 0 : localStatus}
-              onChange={(e) => setLocalStatus(Number(e.target.value))}
-            >
-              <SquareMenuItem value={0}>
-                <ListItemText slotProps={{ primary: { variant: "body2" } }}>
-                  <em>{t("common.all")}</em>
-                </ListItemText>
-              </SquareMenuItem>
-              <SquareMenuItem value={1}>
-                <ListItemText slotProps={{ primary: {variant: "body2" }}}>
-                  {t("common.status_active")}
-                </ListItemText>
-              </SquareMenuItem>
-              <SquareMenuItem value={2}>
-                <ListItemText slotProps={{ primary: {variant: "body2" }}}>
-                  {t("common.status_inactive")}
-                </ListItemText>
-              </SquareMenuItem>
-            </DenseSelect>
-          </FormControl>
+          <AiStatusSelect includeAll value={localStatus ?? ""} onChange={setLocalStatus} />
         </SettingForm>
 
         <SettingForm title={t("knowledge.otherConfitions")} noContainer lgWidth={12}>

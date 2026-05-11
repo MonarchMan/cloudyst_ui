@@ -18,8 +18,12 @@ export interface NewKnowledgeDialogProps {
 const defaultKnowledge: AiKnowledgeModel = {
   id: 0,
   name: "",
+  description: "",
   status: Status.active,
+  is_public: false,
 }
+
+const optionalNumber = (value: string) => (value === "" ? undefined : Number(value));
 
 const NewKnowledgeDialog = ({ open, onClose, onCreated }: NewKnowledgeDialogProps) => {
   const { t } = useTranslation("dashboard");
@@ -90,7 +94,7 @@ const NewKnowledgeDialog = ({ open, onClose, onCreated }: NewKnowledgeDialogProp
               <DenseFilledTextField
                 fullWidth
                 required
-                value={knowledge.description}
+                value={knowledge.description ?? ""}
                 onChange={(e) => setKnowledge({ ...knowledge, description: e.target.value })}
               />
               <NoMarginHelperText>{t("knowledge.nameOfKnowledgeDes")}</NoMarginHelperText>
@@ -104,8 +108,8 @@ const NewKnowledgeDialog = ({ open, onClose, onCreated }: NewKnowledgeDialogProp
                     min: 0,
                   }
                 }}
-                value={knowledge.top_k}
-                onChange={(e) => setKnowledge({ ...knowledge, top_k: Number(e.target.value) })}
+                value={knowledge.top_k ?? ""}
+                onChange={(e) => setKnowledge((prev) => ({ ...prev, top_k: optionalNumber(e.target.value) }))}
               />
               <NoMarginHelperText>{t("model.topKOfKnowledgeDes")}</NoMarginHelperText>
             </SettingForm>
@@ -118,8 +122,8 @@ const NewKnowledgeDialog = ({ open, onClose, onCreated }: NewKnowledgeDialogProp
                     min: 0,
                   }
                 }}
-                value={knowledge.similarity_threshold}
-                onChange={(e) => setKnowledge({ ...knowledge, top_k: Number(e.target.value) })}
+                value={knowledge.similarity_threshold ?? ""}
+                onChange={(e) => setKnowledge((prev) => ({ ...prev, similarity_threshold: optionalNumber(e.target.value) }))}
               />
               <NoMarginHelperText>{t("knowledge.similarityOfKnowledgeDes")}</NoMarginHelperText>
             </SettingForm>
@@ -128,7 +132,7 @@ const NewKnowledgeDialog = ({ open, onClose, onCreated }: NewKnowledgeDialogProp
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={knowledge.is_public}
+                      checked={knowledge.is_public ?? false}
                       onChange={(e) => setKnowledge({ ...knowledge, is_public: e.target.checked })}
                     />
                   }

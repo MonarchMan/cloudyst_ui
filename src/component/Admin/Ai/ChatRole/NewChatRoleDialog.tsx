@@ -15,11 +15,13 @@ export interface NewChatRoleDialogProps {
 }
 
 const defaultRole: AiChatRole = {
-  id: 0,
-  name: "",
-  description: "",
-  category: "",
-  system_message: "",
+  role: {
+    id: 0,
+    name: "",
+    description: "",
+    category: "",
+    system_message: "",
+  }
 };
 
 const NewChatRoleDialog = ({ open, onClose, onCreated }: NewChatRoleDialogProps) => {
@@ -42,7 +44,7 @@ const NewChatRoleDialog = ({ open, onClose, onCreated }: NewChatRoleDialogProps)
     }
 
     setLoading(true);
-    dispatch(upsertRole(role))
+    dispatch(upsertRole(role.role))
       .then((res) => {
         onCreated(res);
         onClose();
@@ -73,22 +75,22 @@ const NewChatRoleDialog = ({ open, onClose, onCreated }: NewChatRoleDialogProps)
               <DenseFilledTextField
                 fullWidth
                 required
-                value={role.name}
-                onChange={(e) => setRole({ ...role, name: e.target.value })}
+                value={role.role.name}
+                onChange={(e) => setRole({ ...role, role: { ...role.role, name: e.target.value } })}
               />
             </SettingForm>
             <SettingForm title={t("role.description")} lgWidth={12}>
               <DenseFilledTextField
                 fullWidth
-                value={role.description}
-                onChange={(e) => setRole({ ...role, description: e.target.value })}
+                value={role.role.description}
+                onChange={(e) => setRole({ ...role, role: { ...role.role, description: e.target.value } })}
               />
             </SettingForm>
             <SettingForm title={t("role.category")} lgWidth={12}>
               <DenseFilledTextField
                 fullWidth
-                value={role.category}
-                onChange={(e) => setRole({ ...role, category: e.target.value })}
+                value={role.role.category}
+                onChange={(e) => setRole({ ...role, role: { ...role.role, category: e.target.value } })}
               />
             </SettingForm>
             <SettingForm title={t("role.systemMessage")} lgWidth={12}>
@@ -96,8 +98,8 @@ const NewChatRoleDialog = ({ open, onClose, onCreated }: NewChatRoleDialogProps)
                 fullWidth
                 multiline
                 rows={4}
-                value={role.system_message}
-                onChange={(e) => setRole({ ...role, system_message: e.target.value })}
+                value={role.role.system_message}
+                onChange={(e) => setRole({ ...role, role: { ...role.role, system_message: e.target.value } })}
               />
             </SettingForm>
           </Stack>

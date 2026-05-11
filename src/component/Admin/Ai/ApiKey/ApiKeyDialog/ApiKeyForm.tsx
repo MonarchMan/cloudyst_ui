@@ -1,15 +1,13 @@
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext } from "react";
 import { ApiKeyDialogContext } from "./ApiKeyDialog";
-import { Box, FormControl, Grid2 as Grid, ListItemText, SelectChangeEvent, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Grid2 as Grid, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch } from "../../../../../redux/hooks";
 import { Status } from "../../../../../api/dashboard";
 import SettingForm from "../../../../Pages/Setting/SettingForm";
-import { DenseFilledTextField, DenseSelect } from "../../../../Common/StyledComponents";
-import { SquareMenuItem } from "../../../../FileManager/ContextMenu/ContextMenu";
+import { DenseFilledTextField } from "../../../../Common/StyledComponents";
+import { AiApiKeyPlatformSelect, AiStatusSelect } from "../../AiSelects";
 
 const ApiKeyForm = () => {
-  const dispatch = useAppDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { t } = useTranslation("dashboard");
@@ -29,23 +27,9 @@ const ApiKeyForm = () => {
     [setApiKey],
   );
 
-  const onPlatformChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setApiKey((prev) => ({ ...prev, platform: e.target.value }))
-    },
-    [setApiKey],
-  );
-
   const onUrlChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setApiKey((prev) => ({ ...prev, url: e.target.value }))
-    },
-    [setApiKey],
-  );
-
-  const onStatusChange = useCallback(
-    (e: SelectChangeEvent<unknown>) => {
-      setApiKey((prev) => ({ ...prev, status: Number(e.target.value) as Status }))
     },
     [setApiKey],
   );
@@ -67,8 +51,12 @@ const ApiKeyForm = () => {
           <DenseFilledTextField fullWidth value={values.api_key} required onChange={onApiKeyChange} />
         </SettingForm>
         
-        <SettingForm title={t("apikey.platfrom")} noContainer lgWidth={12}>
-          <DenseFilledTextField fullWidth value={values.platform} required onChange={onPlatformChange} />
+        <SettingForm title={t("apikey.platform")} noContainer lgWidth={12}>
+          <AiApiKeyPlatformSelect
+            required
+            value={values.platform}
+            onChange={(platform) => setApiKey((prev) => ({ ...prev, platform }))}
+          />
         </SettingForm>
         
         <SettingForm title={t("apikey.url")} noContainer lgWidth={12}>
@@ -76,17 +64,10 @@ const ApiKeyForm = () => {
         </SettingForm>
 
         <SettingForm title={t("apikey.status")} noContainer lgWidth={12}>
-          <FormControl fullWidth>
-            <DenseSelect value={values.status} onChange={onStatusChange}>
-              {Object.values(Status).map((value) => (
-                <SquareMenuItem value={value} key={value}>
-                  <ListItemText slotProps={{ primary: { variant: "body2" }}}>
-                    {t(`model.status`)}
-                  </ListItemText>
-                </SquareMenuItem>
-              ))}
-            </DenseSelect>
-          </FormControl>
+          <AiStatusSelect
+            value={values.status}
+            onChange={(status) => setApiKey((prev) => ({ ...prev, status: status as Status }))}
+          />
         </SettingForm>
         
         <SettingForm title={t("apikey.createdAt")} noContainer lgWidth={12}>

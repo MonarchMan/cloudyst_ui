@@ -72,6 +72,7 @@ export const chatStateSlice = createSlice({
         conv[idx] = {
           ...conv[idx],
           ...confirmed,
+          type: "send",
         };
       }
     },
@@ -81,9 +82,15 @@ export const chatStateSlice = createSlice({
       if (!conv) return;
       const idx = conv.findIndex((m) => m.id === tempId);
       if (idx !== -1) {
-        conv[idx] = confirmed;
+        conv[idx] = {
+          ...confirmed,
+          type: "receive",
+        };
       } else {
-        conv.push(confirmed);
+        conv.push({
+          ...confirmed,
+          type: "receive",
+        });
       }
     },
     // stream response
@@ -91,10 +98,11 @@ export const chatStateSlice = createSlice({
       const newMsg = action.payload;
       const msg = state.messages[newMsg.conversation_id]?.find((m) => m.id === newMsg.id);
       if (msg) {
+        msg.type = "receive";
         msg.content += newMsg.content;
         msg.status = newMsg.status ?? msg.status;
         msg.error_message = newMsg.error_message ?? msg.error_message;
-        msg.parent_send_id = newMsg.parent_send_id ?? msg.parent_send_id;
+        msg.reply_id = newMsg.reply_id ?? msg.reply_id;
         if (newMsg.reason_content){
           msg.reason_content = (msg.reason_content ?? "") + (newMsg.reason_content ?? "");
         }

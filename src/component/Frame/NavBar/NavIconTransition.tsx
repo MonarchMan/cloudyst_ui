@@ -4,7 +4,7 @@ import "../../Common/FadeTransition.css";
 import SvgIcon from "@mui/material/SvgIcon/SvgIcon";
 
 export interface NavIconTransitionProps {
-  fileIcon: React.ComponentType<SvgIconProps>[] | (typeof SvgIcon)[];
+  fileIcon: readonly React.ComponentType<SvgIconProps>[] | readonly (typeof SvgIcon)[];
   active?: boolean;
   [key: string]: any;
   iconProps?: SvgIconProps;

@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch } from "../../../../redux/hooks";
 import { NoWrapTableCell, NoWrapTypography } from "../../../Common/StyledComponents";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Delete } from "@mui/icons-material";
 
 export interface ModelRowProps {
@@ -17,9 +16,10 @@ export interface ModelRowProps {
   onDelete?: () => void;
   onDetails?: (id: number) => void;
   onSelect?: (id: number) => void;
+  openApiKeyDialog?: (id: number) => void;
 }
 
-const ModelRow = ({ model, loading, deleting, selected, onDelete, onDetails, onSelect }: ModelRowProps) => {
+const ModelRow = ({ model, loading, deleting, selected, onDelete, onDetails, onSelect, openApiKeyDialog }: ModelRowProps) => {
   const { t } = useTranslation("dashboard");
   const dispatch = useAppDispatch();
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -51,15 +51,26 @@ const ModelRow = ({ model, loading, deleting, selected, onDelete, onDetails, onS
     onSelect?.(model?.id ?? 0);
   };
 
-  const stopPropagation = (e: React.MouseEvent<HTMLElement>) => {
+  const onApiKeyClick = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
+    e.preventDefault();
+    const apiKeyID = model?.api_key?.id ?? model?.key_id;
+    if (apiKeyID) {
+      openApiKeyDialog?.(apiKeyID);
+    }
   };
+
+  const apiKeyID = model?.api_key?.id ?? model?.key_id;
+  const apiKeyLabel = model?.api_key?.name ?? apiKeyID ?? "";
 
   if (loading) {
     return (
       <TableRow sx={{ height: "43px" }}>
         <NoWrapTableCell>
           <Skeleton variant="circular" width={24} height={24} />
+        </NoWrapTableCell>
+        <NoWrapTableCell>
+          <Skeleton variant="text" width={150} />
         </NoWrapTableCell>
         <NoWrapTableCell>
           <Skeleton variant="text" width={150} />
@@ -99,6 +110,9 @@ const ModelRow = ({ model, loading, deleting, selected, onDelete, onDetails, onS
         <NoWrapTypography variant="inherit">{model?.name}</NoWrapTypography>
       </NoWrapTableCell>
       <NoWrapTableCell>
+        <NoWrapTypography variant="inherit">{model?.model}</NoWrapTypography>
+      </NoWrapTableCell>
+      <NoWrapTableCell>
         <NoWrapTypography variant="inherit">{model?.platform}</NoWrapTypography>
       </NoWrapTableCell>
       <NoWrapTableCell>
@@ -115,14 +129,19 @@ const ModelRow = ({ model, loading, deleting, selected, onDelete, onDetails, onS
       </NoWrapTableCell>
       <NoWrapTableCell>
         <NoWrapTypography variant="inherit">
-          <Link
-            onClick={stopPropagation}
-            component={RouterLink}
-            to={`/admin/api-key/${model?.api_key?.id}`}
-            underline="hover"
-          >
-            {model?.api_key?.name}
-          </Link>
+          {apiKeyID ? (
+            <Link
+              component="button"
+              type="button"
+              onClick={onApiKeyClick}
+              underline="hover"
+              sx={{ verticalAlign: "baseline" }}
+            >
+              {apiKeyLabel}
+            </Link>
+          ) : (
+            apiKeyLabel
+          )}
         </NoWrapTypography>
       </NoWrapTableCell>
       <NoWrapTableCell>

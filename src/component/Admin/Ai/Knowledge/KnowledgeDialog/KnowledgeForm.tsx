@@ -1,14 +1,14 @@
-import { Box, FormControl, FormControlLabel, Grid2 as Grid, Link, ListItemText, SelectChangeEvent, Switch, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, FormControl, FormControlLabel, Grid2 as Grid, Link, Switch, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { KnowledgeDialogContext } from "./KnowledgeDialog";
 import { Status } from "../../../../../api/dashboard";
-import { DenseFilledTextField, DenseSelect, NoWrapTypography } from "../../../../Common/StyledComponents";
-import { SquareMenuItem } from "../../../../FileManager/ContextMenu/ContextMenu";
+import { DenseFilledTextField, NoWrapTypography } from "../../../../Common/StyledComponents";
 import SettingForm from "../../../../Pages/Setting/SettingForm";
 import { NoMarginHelperText } from "../../../Settings/Settings";
 import UserDialog from "../../../User/UserDialog/UserDialog";
 import UserAvatar from "../../../../Common/User/UserAvatar";
+import { AiStatusSelect } from "../../AiSelects";
 
 const KnowledgeForm = () => {
   const theme = useTheme();
@@ -56,13 +56,6 @@ const KnowledgeForm = () => {
   const onIsMasterChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setKnowledge((prev) => ({ ...prev, is_public: e.target.checked}))
-    },
-    [setKnowledge],
-  );
-
-  const onStatusChange = useCallback(
-    (e: SelectChangeEvent<unknown>) => {
-      setKnowledge((prev) => ({ ...prev, status: Number(e.target.value) as Status }))
     },
     [setKnowledge],
   );
@@ -161,17 +154,10 @@ const KnowledgeForm = () => {
             </SettingForm>
 
             <SettingForm title={t("knowledge.status")} noContainer lgWidth={12}>
-              <FormControl fullWidth>
-                <DenseSelect value={values.knowledge.status} onChange={onStatusChange}>
-                  {Object.values(Status).map((value) => (
-                    <SquareMenuItem value={value} key={value}>
-                      <ListItemText slotProps={{ primary: { variant: "body2" }}}>
-                        {t(`knowledge.status`)}
-                      </ListItemText>
-                    </SquareMenuItem>
-                  ))}
-                </DenseSelect>
-              </FormControl>
+              <AiStatusSelect
+                value={values.knowledge.status}
+                onChange={(status) => setKnowledge((prev) => ({ ...prev, status: status as Status }))}
+              />
             </SettingForm>
             
             <SettingForm title={t("knowledge.createdAt")} noContainer lgWidth={12}>

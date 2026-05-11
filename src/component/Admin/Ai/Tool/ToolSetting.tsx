@@ -31,13 +31,11 @@ import PageContainer from "../../../Pages/PageContainer";
 import PageHeader from "../../../Pages/PageHeader";
 import TablePagination from "../../Common/TablePagination";
 import { OrderByQuery, OrderDirectionQuery, PageQuery, PageSizeQuery } from "../../StoragePolicy/StoragePolicySetting";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions } from "../constants";
 import NewToolDialog from "./NewToolDialog";
 import ToolDialog from "./ToolDialog/ToolDialog";
 import ToolFilterPopover from "./ToolFilterPopover";
 import ToolRow from "./ToolRow";
-
-export const NameQuery = "name";
-export const TypeQuery = "type";
 
 const ToolSetting = () => {
   const { t } = useTranslation("dashboard");
@@ -54,8 +52,8 @@ const ToolSetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [name, setName] = useQueryState(NameQuery, { defaultValue: "" });
-  const [type, setType] = useQueryState(TypeQuery, { defaultValue: "" });
+  const [name, setName] = useQueryState(AdminAiQuery.common.name, { defaultValue: "" });
+  const [type, setType] = useQueryState(AdminAiQuery.common.type, { defaultValue: "" });
   const [count, setCount] = useState(0);
   const [selected, setSelected] = useState<readonly number[]>([]);
   const [createNewOpen, setCreateNewOpen] = useState(false);
@@ -88,10 +86,10 @@ const ToolSetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
-          name: name,
-          type: type,
-        },
+        conditions: buildConditions({
+          name,
+          type,
+        }),
       }),
     )
       .then((res) => {
@@ -232,7 +230,7 @@ const ToolSetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -242,24 +240,24 @@ const ToolSetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={150}>
+                <NoWrapTableCell width={AiTableColumnWidth.longText}>
                   <TableSortLabel active={orderBy === "name"} direction={direction} onClick={onSortClick("name")}>
                     {t("tool.name")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={200}>{t("tool.description")}</NoWrapTableCell>
-                <NoWrapTableCell width={100}>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>{t("tool.description")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>
                   <TableSortLabel active={orderBy === "type"} direction={direction} onClick={onSortClick("type")}>
                     {t("tool.type")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={200}>{t("tool.parameters")}</NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>{t("tool.parameters")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>

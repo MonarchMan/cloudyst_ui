@@ -46,7 +46,7 @@ const ImageForm = ({ values }: { values: AiImage }) => {
             </Typography>
           </SettingForm>
 
-          <SettingForm title={t("image  .owner")} noContainer lgWidth={4}>
+          <SettingForm title={t("image.owner")} noContainer lgWidth={4}>
               <NoWrapTypography variant={"body2"} color={"textSecondary"}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <UserAvatar

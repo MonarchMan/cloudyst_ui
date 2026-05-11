@@ -5,12 +5,13 @@ import { getApiKeyList } from "../../../../api/api";
 import { Box, FormControl, ListItemText, Typography } from "@mui/material";
 import { DenseSelect } from "../../../Common/StyledComponents";
 import { SquareMenuItem } from "../../../FileManager/ContextMenu/ContextMenu";
+import { useTranslation } from "react-i18next";
 
 export interface ApiKeySelectionInputProps {
   value: number;
   onChange: (value: number) => void;
   onChangeApiKey?: (apikey?: AiApiKey) => void;
-  emptyValue?: string;
+  emptyValue?: string | number;
   emptyText?: string;
   fullWidth?: boolean;
   required?: boolean;
@@ -26,6 +27,7 @@ const ApiKeySelectionInput = ({
   required,
 }: ApiKeySelectionInputProps) => {
   const dispatch = useAppDispatch();
+  const { t } = useTranslation("dashboard");
   const [loading, setLoading] = useState(true);
   const [apiKeys, setApiKeys] = useState<AiApiKey[]>([]);
 
@@ -47,9 +49,10 @@ const ApiKeySelectionInput = ({
     })
   }, []);
 
-  const hanldeChange = (value: number) => {
-    onChange(value);
-    onChangeApiKey?.(apiKeys.find((k) => k.id === value));
+  const hanldeChange = (value: string | number) => {
+    const nextValue = Number(value);
+    onChange(nextValue);
+    onChangeApiKey?.(apiKeys.find((k) => k.id === nextValue));
   };
 
   return (
@@ -63,7 +66,7 @@ const ApiKeySelectionInput = ({
         {
           apiKeys
             .map((k) => (
-              <SquareMenuItem value={k.id.toString()}>
+              <SquareMenuItem value={k.id} key={k.id}>
                 <Box
                   sx={{
                     display: "flex",
@@ -83,7 +86,7 @@ const ApiKeySelectionInput = ({
         {emptyValue !== undefined && emptyText && (
           <SquareMenuItem value={emptyValue}>
             <ListItemText
-              primary={<em>{emptyText}</em>}
+              primary={<em>{t(emptyText)}</em>}
               slotProps={{
                 primary: { variant: "body2"}
               }} />

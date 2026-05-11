@@ -31,15 +31,11 @@ import PageContainer from "../../../Pages/PageContainer";
 import PageHeader from "../../../Pages/PageHeader";
 import TablePagination from "../../Common/TablePagination";
 import { OrderByQuery, OrderDirectionQuery, PageQuery, PageSizeQuery } from "../../StoragePolicy/StoragePolicySetting";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions } from "../constants";
 import ChatRoleDialog from "./ChatRoleDialog/ChatRoleDialog";
 import ChatRoleFilterPopover from "./ChatRoleFilterPopover";
 import ChatRoleRow from "./ChatRoleRow";
 import NewChatRoleDialog from "./NewChatRoleDialog";
-
-export const NameQuery = "name";
-export const UserIdQuery = "user_id";
-export const PublicStatusQuery = "public_status";
-export const CategoryQuery = "category";
 
 const ChatRoleSetting = () => {
   const { t } = useTranslation("dashboard");
@@ -56,10 +52,10 @@ const ChatRoleSetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [name, setName] = useQueryState(NameQuery, { defaultValue: "" });
-  const [userId, setUserId] = useQueryState(UserIdQuery, { defaultValue: "" });
-  const [publicStatus, setPublicStatus] = useQueryState(PublicStatusQuery, { defaultValue: "" });
-  const [category, setCategory] = useQueryState(CategoryQuery, { defaultValue: "" });
+  const [name, setName] = useQueryState(AdminAiQuery.common.name, { defaultValue: "" });
+  const [userId, setUserId] = useQueryState(AdminAiQuery.common.userId, { defaultValue: "" });
+  const [publicStatus, setPublicStatus] = useQueryState(AdminAiQuery.role.publicStatus, { defaultValue: "" });
+  const [category, setCategory] = useQueryState(AdminAiQuery.role.category, { defaultValue: "" });
   const [count, setCount] = useState(0);
   const [selected, setSelected] = useState<readonly number[]>([]);
   const [createNewOpen, setCreateNewOpen] = useState(false);
@@ -68,6 +64,8 @@ const ChatRoleSetting = () => {
     variant: "popover",
     popupId: "roleFilterPopover",
   });
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [userDialogID, setUserDialogID] = useState<number | undefined>(undefined);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [roleDialogID, setRoleDialogID] = useState<number | undefined>(undefined);
 
@@ -94,12 +92,12 @@ const ChatRoleSetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
-          name: name,
+        conditions: buildConditions({
+          name,
           user_id: userId,
           public_status: publicStatus,
-          category: category,
-        },
+          category,
+        }),
       }),
     )
       .then((res) => {
@@ -175,6 +173,11 @@ const ChatRoleSetting = () => {
     setRoleDialogOpen(true);
   };
 
+  const handleUserDialogOpen = (id: number) => {
+    setUserDialogID(id);
+    setUserDialogOpen(true);
+  };
+
   return (
     <PageContainer>
       <NewChatRoleDialog
@@ -244,7 +247,7 @@ const ChatRoleSetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -254,20 +257,20 @@ const ChatRoleSetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={250}>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>
                   <TableSortLabel active={orderBy === "name"} direction={direction} onClick={onSortClick("name")}>
                     {t("role.name")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={150}>{t("role.owner")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("role.publicStatus")}</NoWrapTableCell>
-                <NoWrapTableCell width={100}>{t("role.category")}</NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.mediumText}>{t("role.owner")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>{t("role.publicStatus")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.mediumText}>{t("role.category")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -281,6 +284,7 @@ const ChatRoleSetting = () => {
                     selected={selected.includes(role.role.id)}
                     onSelect={handleSelect}
                     onDetails={handleRoleDialogOpen}
+                    openUserDialog={handleUserDialogOpen}
                   />
                 ))}
               {loading &&

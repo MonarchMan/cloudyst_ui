@@ -1,9 +1,10 @@
-import { Box, Paper, Tab, Tabs } from "@mui/material";
+import { Box } from "@mui/material";
 import React from "react";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 import ChatTab from "./ChatTab.tsx";
 import KnowledgeTab from "./KnowledgeTab.tsx";
+import { AI_ASSISTANT_BASE_PATH } from "./constants.tsx";
 
 enum AiTab {
   chat = "chat",
@@ -11,19 +12,14 @@ enum AiTab {
 }
 
 const AiPage = () => {
-  const { t } = useTranslation("application");
-  const [activeTab, setActiveTab] = useState<AiTab>(AiTab.chat);
+  const location = useLocation();
+  const navigate = useNavigate();
   const [draftKnowledgeId, setDraftKnowledgeId] = useState<string | null>(null);
+  const activeTab = location.pathname.startsWith(`${AI_ASSISTANT_BASE_PATH}/knowledge`) ? AiTab.knowledge : AiTab.chat;
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <Paper elevation={0} sx={{ borderBottom: 1, borderColor: "divider", borderRadius: 0 }}>
-        <Tabs value={activeTab} onChange={(_e, value) => setActiveTab(value)} variant="scrollable" scrollButtons="auto">
-          <Tab value={AiTab.chat} label={t("ai.chat")} />
-          <Tab value={AiTab.knowledge} label={t("ai.knowledge")} />
-        </Tabs>
-      </Paper>
-      <Box sx={{ flex: 1, minHeight: 0 }}>
+      <Box sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
         {activeTab === AiTab.chat && (
           <ChatTab draftKnowledgeId={draftKnowledgeId} onDraftKnowledgeApplied={() => setDraftKnowledgeId(null)} />
         )}
@@ -31,7 +27,7 @@ const AiPage = () => {
           <KnowledgeTab
             onStartRagChat={(knowledgeId) => {
               setDraftKnowledgeId(knowledgeId);
-              setActiveTab(AiTab.chat);
+              navigate(`${AI_ASSISTANT_BASE_PATH}/chat`);
             }}
           />
         )}

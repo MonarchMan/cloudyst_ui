@@ -32,14 +32,9 @@ import PageContainer from "../../../Pages/PageContainer";
 import PageHeader from "../../../Pages/PageHeader";
 import TablePagination from "../../Common/TablePagination";
 import { OrderByQuery, OrderDirectionQuery, PageQuery, PageSizeQuery } from "../../StoragePolicy/StoragePolicySetting";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions } from "../constants";
 import ChatMessageFilterPopover from "./ChatMessageFilterPopover";
 import ChatMessageRow from "./ChatMessageRow";
-
-export const ConversationIdQuery = "conversation_id";
-export const UserIdQuery = "user_id";
-export const RoleIdQuery = "role_id";
-export const ModelIdQuery = "model_id";
-export const TypeQuery = "type";
 
 const ChatMessageSetting = () => {
   const { t } = useTranslation("dashboard");
@@ -56,18 +51,23 @@ const ChatMessageSetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [conversationId, setConversationId] = useQueryState(ConversationIdQuery, { defaultValue: "" });
-  const [userId, setUserId] = useQueryState(UserIdQuery, { defaultValue: "" });
-  const [roleId, setRoleId] = useQueryState(RoleIdQuery, { defaultValue: "" });
-  const [modelId, setModelId] = useQueryState(ModelIdQuery, { defaultValue: "" });
-  const [type, setType] = useQueryState(TypeQuery, { defaultValue: "" });
+  const [conversationId, setConversationId] = useQueryState(AdminAiQuery.message.conversationId, { defaultValue: "" });
+  const [userId, setUserId] = useQueryState(AdminAiQuery.common.userId, { defaultValue: "" });
+  const [roleId, setRoleId] = useQueryState(AdminAiQuery.common.roleId, { defaultValue: "" });
+  const [modelId, setModelId] = useQueryState(AdminAiQuery.common.modelId, { defaultValue: "" });
+  const [type, setType] = useQueryState(AdminAiQuery.common.type, { defaultValue: "" });
   const [count, setCount] = useState(0);
   const [selected, setSelected] = useState<readonly number[]>([]);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const filterPopupState = usePopupState({
     variant: "popover",
     popupId: "messageFilterPopover",
   });
+
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [userDialogID, setUserDialogID] = useState<number | undefined>(undefined);
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [messageDialogID, setMessageDialogID] = useState<number | undefined>(undefined);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const pageInt = parseInt(page) ?? 1;
   const pageSizeInt = parseInt(pageSize) ?? 10;
@@ -93,13 +93,13 @@ const ChatMessageSetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
+        conditions: buildConditions({
           conversation_id: conversationId,
           user_id: userId,
           role_id: roleId,
           model_id: modelId,
-          type: type,
-        },
+          type,
+        }),
       }),
     )
       .then((res) => {
@@ -132,7 +132,7 @@ const ChatMessageSetting = () => {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = messages.map((n) => n.id);
+      const newSelected = messages.map((n) => n.message.id);
       setSelected(newSelected);
       return;
     }
@@ -169,6 +169,16 @@ const ChatMessageSetting = () => {
   const hasActiveFilters = useMemo(() => {
     return !!(conversationId || userId || roleId || modelId || type);
   }, [conversationId, userId, roleId, modelId, type]);
+
+  const handleMessageDialogOpen = (id: number) => {
+    setMessageDialogID(id);
+    setMessageDialogOpen(true);
+  };
+
+  const handleUserDialogOpen = (id: number) => {
+    setUserDialogID(id);
+    setUserDialogOpen(true);
+  };
 
   return (
     <PageContainer>
@@ -220,7 +230,7 @@ const ChatMessageSetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -230,19 +240,17 @@ const ChatMessageSetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("message.conversationId")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("message.userId")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("message.roleId")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("message.modelId")}</NoWrapTableCell>
-                <NoWrapTableCell width={150}>{t("message.model")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("message.type")}</NoWrapTableCell>
-                <NoWrapTableCell width={250}>{t("message.content")}</NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>{t("message.conversationId")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.mediumText}>{t("message.user")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.longText}>{t("message.model")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>{t("message.type")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>{t("message.content")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -250,16 +258,18 @@ const ChatMessageSetting = () => {
                 messages.map((message) => (
                   <ChatMessageRow
                     deleting={deleteLoading}
-                    key={message.id}
+                    key={message.message.id}
                     message={message}
                     onDelete={fetchMessages}
-                    selected={selected.includes(message.id)}
+                    selected={selected.includes(message.message.id)}
                     onSelect={handleSelect}
+                    onDetails={handleMessageDialogOpen}
+                    openUserDialog={handleUserDialogOpen}
                   />
                 ))}
               {loading &&
                 messages.length > 0 &&
-                messages.slice(0, 10).map((message) => <ChatMessageRow key={`loading-${message.id}`} loading={true} />)}
+                messages.slice(0, 10).map((message) => <ChatMessageRow key={`loading-${message.message.id}`} loading={true} />)}
               {loading &&
                 messages.length === 0 &&
                 Array.from(Array(10)).map((_, index) => <ChatMessageRow key={`loading-${index}`} loading={true} />)}

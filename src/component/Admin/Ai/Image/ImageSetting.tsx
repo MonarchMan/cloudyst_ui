@@ -32,14 +32,11 @@ import PageContainer from "../../../Pages/PageContainer";
 import PageHeader from "../../../Pages/PageHeader";
 import TablePagination from "../../Common/TablePagination";
 import { OrderByQuery, OrderDirectionQuery, PageQuery, PageSizeQuery } from "../../StoragePolicy/StoragePolicySetting";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions } from "../constants";
 import ImageFilterPopover from "./ImageFilterPopover";
 import ImageRow from "./ImageRow";
 import ImageDialog from "./ImageDialog/ImageDialog";
 import UserDialog from "../../User/UserDialog/UserDialog";
-
-export const PlatformQuery = "platform";
-export const ModelIdQuery = "model_id";
-export const UserIdQuery = "user_id";
 
 const ImageSetting = () => {
   const { t } = useTranslation("dashboard");
@@ -56,9 +53,9 @@ const ImageSetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [platform, setPlatform] = useQueryState(PlatformQuery, { defaultValue: "" });
-  const [modelId, setModelId] = useQueryState(ModelIdQuery, { defaultValue: "" });
-  const [userId, setUserId] = useQueryState(UserIdQuery, { defaultValue: "" });
+  const [platform, setPlatform] = useQueryState(AdminAiQuery.common.platform, { defaultValue: "" });
+  const [modelId, setModelId] = useQueryState(AdminAiQuery.common.modelId, { defaultValue: "" });
+  const [userId, setUserId] = useQueryState(AdminAiQuery.common.userId, { defaultValue: "" });
   const [count, setCount] = useState(0);
   const [selected, setSelected] = useState<readonly number[]>([]);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -94,11 +91,11 @@ const ImageSetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
-          platform: platform,
+        conditions: buildConditions({
+          platform,
           model_id: modelId,
           user_id: userId,
-        },
+        }),
       }),
     )
       .then((res) => {
@@ -227,7 +224,7 @@ const ImageSetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -237,18 +234,18 @@ const ImageSetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("image.userId")}</NoWrapTableCell>
-                <NoWrapTableCell width={100}>{t("image.platform")}</NoWrapTableCell>
-                <NoWrapTableCell width={150}>{t("image.model")}</NoWrapTableCell>
-                <NoWrapTableCell width={200}>{t("image.prompt")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("image.dimensions")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("common.status")}</NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>{t("image.userId")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>{t("image.platform")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.longText}>{t("image.model")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>{t("image.prompt")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>{t("image.dimensions")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.status}>{t("common.status")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>

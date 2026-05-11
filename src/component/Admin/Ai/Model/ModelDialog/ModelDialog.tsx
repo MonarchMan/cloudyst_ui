@@ -26,6 +26,7 @@ export interface ModelDialogContextProps {
 const defaultModel: AiModel = {
   id: 0,
   name: "",
+  model: "",
 }
 
 export const ModelDialogContext = createContext<ModelDialogContextProps>({

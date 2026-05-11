@@ -24,8 +24,10 @@ export interface ChatRoleDialogContextProps {
 }
 
 const defaultRole: AiChatRole = {
-  id: 0,
-  name: "",
+  role: {
+    id: 0,
+    name: "",
+  }
 };
 
 export const ChatRoleDialogContext = createContext<ChatRoleDialogContextProps>({
@@ -85,7 +87,7 @@ const ChatRoleDialog = ({ open, onClose, roleID, onUpdated }: ChatRoleDialogProp
     }
 
     setSubmitting(true);
-    dispatch(upsertRole(modifiedValues))
+    dispatch(upsertRole(modifiedValues.role))
       .then((res) => {
         setValues(res);
         setModifiedValues(res);

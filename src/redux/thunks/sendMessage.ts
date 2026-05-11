@@ -44,18 +44,20 @@ async function* parseSSEStream(
 ): AsyncGenerator<SendMessageResponse> {
   const decoder = new TextDecoder();
   let buffer = "";
+  let eventDataLines: string[] = [];
 
-  const tryYield = function* (raw: string) {
+  const parsePayload = (raw: string): SendMessageResponse | null => {
     const data = raw.trim();
-    if (!data || data === "[DONE]") return;
+    if (!data || data === "[DONE]") return null;
     try {
       const parsed = JSON.parse(data);
       if (parsed && typeof parsed === "object" && ("send" in parsed || "receive" in parsed)) {
-        yield parsed as SendMessageResponse;
+        return parsed as SendMessageResponse;
       }
     } catch {
       console.warn("[SSE] Failed to parse chunk:", data);
     }
+    return null;
   };
 
   while (true) {
@@ -66,26 +68,51 @@ async function* parseSSEStream(
     const lines = buffer.split("\n");
     buffer = lines.pop() ?? "";
 
-    let dataLines: string[] = [];
     for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed) {
-        if (dataLines.length > 0) {
-          yield* tryYield(dataLines.join(""));
-          dataLines = [];
+        if (eventDataLines.length > 0) {
+          const parsed = parsePayload(eventDataLines.join(""));
+          if (parsed) {
+            yield parsed;
+          }
+          eventDataLines = [];
         }
         continue;
       }
 
       if (trimmed.startsWith("data:")) {
-        dataLines.push(trimmed.slice(5).trimStart());
+        const payload = trimmed.slice(5).trimStart();
+        const parsed = parsePayload(payload);
+        if (parsed) {
+          yield parsed;
+          eventDataLines = [];
+        } else {
+          eventDataLines.push(payload);
+        }
+        continue;
+      }
+
+      const parsed = parsePayload(trimmed);
+      if (parsed) {
+        yield parsed;
       }
     }
   }
 
   if (buffer.trim()) {
     const data = buffer.trim().startsWith("data:") ? buffer.trim().slice(5).trimStart() : buffer.trim();
-    yield* tryYield(data);
+    const parsed = parsePayload(data);
+    if (parsed) {
+      yield parsed;
+    }
+  }
+
+  if (eventDataLines.length > 0) {
+    const parsed = parsePayload(eventDataLines.join(""));
+    if (parsed) {
+      yield parsed;
+    }
   }
 }
 
@@ -104,6 +131,42 @@ interface StreamActionOptions {
   tempUserMsgId?: string;
   onSend?: (message: MessageRecord) => void;
 }
+
+const readString = (record: Record<string, unknown>, ...keys: string[]) => {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string") {
+      return value;
+    }
+  }
+  return undefined;
+};
+
+const normalizeIncomingMessage = (
+  raw: MessageRecord,
+  type: "send" | "receive",
+  conversationID: string,
+  fallback?: Partial<MessageRecord>,
+): MessageRecord => {
+  const record = raw as unknown as Record<string, unknown>;
+
+  return {
+    ...fallback,
+    ...raw,
+    id: readString(record, "id") || fallback?.id || "",
+    type,
+    content: readString(record, "content") ?? fallback?.content ?? "",
+    reason_content: readString(record, "reason_content", "reasonContent") ?? fallback?.reason_content,
+    conversation_id: readString(record, "conversation_id", "conversationId") || fallback?.conversation_id || conversationID,
+    reply_id: readString(record, "parent_send_id", "parentSendId") || fallback?.reply_id,
+    created_at: readString(record, "created_at", "createdAt") || fallback?.created_at || new Date().toISOString(),
+    attachment_urls: (record.attachment_urls || record.attachmentUrls || fallback?.attachment_urls) as MessageRecord["attachment_urls"],
+    web_pages: (record.web_pages || record.webPages || fallback?.web_pages) as MessageRecord["web_pages"],
+    model_id: readString(record, "model_id", "modelId") || fallback?.model_id,
+    use_context: typeof record.use_context === "boolean" ? record.use_context : typeof record.useContext === "boolean" ? record.useContext : fallback?.use_context,
+    use_search: typeof record.use_search === "boolean" ? record.use_search : typeof record.useSearch === "boolean" ? record.useSearch : fallback?.use_search,
+  };
+};
 
 async function streamMessageAction(dispatch: any, options: StreamActionOptions) {
   const { conversationID, endpoint, body, tempAssistantMsgId, tempUserMsgId, onSend } = options;
@@ -137,13 +200,13 @@ async function streamMessageAction(dispatch: any, options: StreamActionOptions) 
 
     for await (const chunk of parseSSEStream(reader)) {
       if (chunk.send) {
-        const serverSendMsg: MessageRecord = {
-          ...chunk.send,
-          status: MessageStatus.Completed,
+        const serverSendMsg: MessageRecord = normalizeIncomingMessage(chunk.send, "send", conversationID, {
+          conversation_id: conversationID,
           use_context: body.use_context,
           use_search: body.use_search,
           model_id: body.model_id,
-        };
+          status: MessageStatus.Completed,
+        });
         if (expectedSendId === null) {
           expectedSendId = serverSendMsg.id;
           if (tempUserMsgId) {
@@ -160,10 +223,15 @@ async function streamMessageAction(dispatch: any, options: StreamActionOptions) 
       }
 
       if (chunk.receive) {
-        const serverReceiveMsg: MessageRecord = {
-          ...chunk.receive,
-          parent_send_id: expectedSendId ?? chunk.receive.parent_send_id,
+        const normalizedReceiveMsg = normalizeIncomingMessage(chunk.receive, "receive", conversationID, {
+          conversation_id: conversationID,
+          reply_id: expectedSendId ?? chunk.receive.reply_id,
           status: MessageStatus.Streaming,
+        });
+        const serverReceiveMsg: MessageRecord = {
+          ...normalizedReceiveMsg,
+          id: assistantMsgId ?? (normalizedReceiveMsg.id || tempAssistantMsgId),
+          reply_id: expectedSendId ?? normalizedReceiveMsg.reply_id,
         };
         if (assistantMsgId === null) {
           assistantMsgId = serverReceiveMsg.id;
@@ -171,8 +239,10 @@ async function streamMessageAction(dispatch: any, options: StreamActionOptions) 
         } else if (serverReceiveMsg.id === assistantMsgId) {
           dispatch(appendStreamMessage(serverReceiveMsg));
         } else {
-          assistantMsgId = serverReceiveMsg.id;
-          dispatch(appendMessage(serverReceiveMsg));
+          dispatch(appendStreamMessage({
+            ...serverReceiveMsg,
+            id: assistantMsgId,
+          }));
         }
       }
     }
@@ -230,7 +300,7 @@ export function sendMessage(content: string, options?: SendMessageOptions): AppT
       type: "receive",
       content: "",
       created_at: new Date().toISOString(),
-      parent_send_id: tempUserMsgId,
+      reply_id: tempUserMsgId,
       status: MessageStatus.Streaming,
     };
 
@@ -271,7 +341,7 @@ export function retryMessage(messageID: string, options?: Omit<SendMessageOption
         type: "receive",
         content: "",
         created_at: new Date().toISOString(),
-        parent_send_id: messageID,
+        reply_id: messageID,
         status: MessageStatus.Streaming,
       }),
     );
@@ -305,21 +375,21 @@ export function editMessage(args: PatchMessageRequest): AppThunk {
       const result = await dispatch(patchMessageApi(args));
       if (result.send) {
         dispatch(
-          upsertMessage({
-            ...result.send,
+          upsertMessage(normalizeIncomingMessage(result.send, "send", conversationID, {
+            conversation_id: conversationID,
             use_context: args.use_context,
             use_search: args.use_search,
             model_id: args.model_id,
-          }),
+          })),
         );
       }
       if (result.receive) {
         dispatch(
-          appendMessage({
-            ...result.receive,
-            parent_send_id: result.send?.id ?? result.receive.parent_send_id,
+          appendMessage(normalizeIncomingMessage(result.receive, "receive", conversationID, {
+            conversation_id: conversationID,
+            reply_id: result.send?.id ?? result.receive.reply_id,
             status: MessageStatus.Completed,
-          }),
+          })),
         );
       }
     } catch (e) {

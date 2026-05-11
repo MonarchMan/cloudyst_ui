@@ -1,6 +1,5 @@
 import { Icon as Iconify } from "@iconify/react";
-import { Box, SvgIconProps, useTheme } from "@mui/material";
-import SvgIcon from "@mui/material/SvgIcon/SvgIcon";
+import { Box, useTheme } from "@mui/material";
 import { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -9,6 +8,8 @@ import { useAppSelector } from "../../../redux/hooks.ts";
 import SessionManager from "../../../session";
 import { GroupBS } from "../../../session/utils.ts";
 import ProDialog from "../../Admin/Common/ProDialog.tsx";
+import { AdminAiNavigationItem } from "../../Admin/Ai/constants.tsx";
+import { AiAssistantNavigationItem } from "../../Pages/Ai/constants.tsx";
 import BoxMultiple from "../../Icons/BoxMultiple.tsx";
 import BoxMultipleFilled from "../../Icons/BoxMultipleFilled.tsx";
 import CloudDownload from "../../Icons/CloudDownload.tsx";
@@ -43,26 +44,13 @@ import StorageOutlined from "../../Icons/StorageOutlined.tsx";
 import Warning from "../../Icons/Warning.tsx";
 import WarningOutlined from "../../Icons/WarningOutlined.tsx";
 import WrenchSettings from "../../Icons/WrenchSettings.tsx";
-import Bot from "../../Icons/Bot.tsx";
 import { ProChip } from "../../Pages/Setting/SettingForm.tsx";
+import CollapsibleNavigationGroup, { NavigationItem } from "./CollapsibleNavigationGroup.tsx";
 import NavIconTransition from "./NavIconTransition.tsx";
 import SideNavItem from "./SideNavItem.tsx";
 
-export interface NavigationItem {
-  label: string;
-  icon?: ((props: SvgIconProps) => JSX.Element)[] | (typeof SvgIcon)[];
-  iconifyName?: string;
-  path: string;
-  pro?: boolean;
-}
-
 let NavigationItems: NavigationItem[];
 NavigationItems = [
-  {
-    label: "navbar.ai",
-    icon: [Bot, Bot],
-    path: "/ai",
-  },
   {
     label: "navbar.myShare",
     icon: [ShareAndroid, ShareOutlined],
@@ -124,6 +112,7 @@ export const SideNavItemComponent = ({ item }: { item: NavigationItem }) => {
           )
         }
         active={active}
+        level={item.level}
         icon={
           !item.icon ? (
             <Box
@@ -132,13 +121,15 @@ export const SideNavItemComponent = ({ item }: { item: NavigationItem }) => {
                 height: 20,
               }}
             >
-              <Iconify
-                icon={item.iconifyName ?? ""}
-                height={20}
-                style={{
-                  color: theme.palette.action.active,
-                }}
-              />
+              {item.iconifyName && (
+                <Iconify
+                  icon={item.iconifyName}
+                  height={20}
+                  style={{
+                    color: theme.palette.action.active,
+                  }}
+                />
+              )}
             </Box>
           ) : (
             <NavIconTransition
@@ -231,11 +222,16 @@ AdminNavigationItems = [
   },
 ];
 
+const AdminAiNavigationGroup = memo(() => {
+  return <CollapsibleNavigationGroup item={AdminAiNavigationItem} renderChild={(item) => <SideNavItemComponent key={item.label} item={item} />} />;
+});
+
 export const AdminPageNavigation = memo(() => {
   return (
     <>
       <SideNavItemComponent key={AdminNavigationItems[0].label} item={AdminNavigationItems[0]} />
       <Box>
+        <AdminAiNavigationGroup />
         {AdminNavigationItems.slice(1).map((item) => (
           <SideNavItemComponent key={item.label} item={item} />
         ))}
@@ -271,6 +267,7 @@ const PageNavigation = () => {
       {isLogin && (
         <Box>
           <>
+            <CollapsibleNavigationGroup item={AiAssistantNavigationItem} renderChild={(item) => <SideNavItemComponent key={item.label} item={item} />} />
             {NavigationItems.map((item) => (
               <SideNavItemComponent key={item.label} item={item} />
             ))}

@@ -1,12 +1,12 @@
-import { Box, FormControl, Grid2 as Grid, ListItemText, SelectChangeEvent, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Grid2 as Grid, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ModelDialogContext } from "./ModelDialog";
 import ApiKeyDialog from "../../ApiKey/ApiKeyDialog/ApiKeyDialog";
 import SettingForm from "../../../../Pages/Setting/SettingForm";
 import { Status } from "../../../../../api/dashboard";
-import { DenseFilledTextField, DenseSelect } from "../../../../Common/StyledComponents";
-import { SquareMenuItem } from "../../../../FileManager/ContextMenu/ContextMenu";
+import { DenseFilledTextField } from "../../../../Common/StyledComponents";
+import { AiModelTypeSelect, AiStatusSelect } from "../../AiSelects";
 
 const ModelForm = () => {
   const theme = useTheme();
@@ -21,9 +21,9 @@ const ModelForm = () => {
     setModel((prev) => ({ ...prev, name: e.target.value}))
   }, [setModel]);
 
-  const onTypeChange = useCallback(
+  const onModelChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-    setModel((prev) => ({ ...prev, type: e.target.value}))
+    setModel((prev) => ({ ...prev, model: e.target.value}))
   }, [setModel]);
 
   const onPlatformChange = useCallback(
@@ -34,11 +34,6 @@ const ModelForm = () => {
   const onSortChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
     setModel((prev) => ({ ...prev, sort: Number(e.target.value)}))
-  }, [setModel]);
-
-  const onStatusChange = useCallback(
-    (e: SelectChangeEvent<unknown>) => {
-    setModel((prev) => ({ ...prev, status: Number(e.target.value) as Status}))
   }, [setModel]);
 
   const onTemperatureChange = useCallback(
@@ -75,11 +70,19 @@ const ModelForm = () => {
           </SettingForm>
 
           <SettingForm title={t("model.name")} noContainer lgWidth={6}>
-            <DenseFilledTextField type="number" fullWidth  value={values.name} required onChange={onNameChange} />
+            <DenseFilledTextField fullWidth  value={values.name} required onChange={onNameChange} />
+          </SettingForm>
+
+          <SettingForm title={t("model.model")} noContainer lgWidth={6}>
+            <DenseFilledTextField fullWidth value={values.model ?? ""} required onChange={onModelChange} />
           </SettingForm>
 
           <SettingForm title={t("model.type")} noContainer lgWidth={6}>
-            <DenseFilledTextField fullWidth  value={values.type} required onChange={onTypeChange} />
+            <AiModelTypeSelect
+              required
+              value={values.type}
+              onChange={(type) => setModel((prev) => ({ ...prev, type }))}
+            />
           </SettingForm>
 
           <SettingForm title={t("model.platform")} noContainer lgWidth={6}>
@@ -139,21 +142,10 @@ const ModelForm = () => {
           </SettingForm>
 
           <SettingForm title={t("model.status")} noContainer lgWidth={6}>
-            <FormControl fullWidth>
-              <DenseSelect value={values.status} onChange={onStatusChange}>
-                <SquareMenuItem value={1}>
-                <ListItemText slotProps={{ primary: {variant: "body2" }}}>
-                  {t("common.status_active")}
-                </ListItemText>
-              </SquareMenuItem>
-              <SquareMenuItem value={2}>
-                <ListItemText slotProps={{ primary: {variant: "body2" }}}>
-                  {t("common.status_inactive")}
-                </ListItemText>
-              </SquareMenuItem>
-              </DenseSelect>
-            </FormControl>
-            
+            <AiStatusSelect
+              value={values.status}
+              onChange={(status) => setModel((prev) => ({ ...prev, status: status as Status }))}
+            />
           </SettingForm>
 
           <SettingForm title={t("model.createdAt")} noContainer lgWidth={6}>

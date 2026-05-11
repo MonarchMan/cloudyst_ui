@@ -104,6 +104,15 @@ export interface UserSettings {
   passkeys?: Passkey[];
   disable_view_sync: boolean;
   share_links_in_profile: ShareLinksInProfileLevel;
+  oauth_grants?: OAuthGrant[];
+}
+
+export interface OAuthGrant {
+  client_id: string;
+  client_name: string;
+  client_logo: string;
+  scopes?: string[];
+  last_used_at?: string;
 }
 
 export interface PatchUserSetting {
@@ -211,4 +220,28 @@ export interface UserInfo {
   status: string;
   avatar: string;
   created_at: string;
+}
+
+export interface AppRegistration {
+  id: string;
+  name: string;
+  homepage_url?: string;
+  description?: string;
+  consented_scopes?: string[];
+  icon?: string;
+}
+
+export interface GrantService {
+  client_id: string;
+  response_type: string;
+  redirect_uri: string;
+  state: string;
+  scope: string;
+  code_challenge?: string;
+  code_challenge_method?: string;
+}
+
+export interface GrantResponse {
+  code: string;
+  state: string;
 }

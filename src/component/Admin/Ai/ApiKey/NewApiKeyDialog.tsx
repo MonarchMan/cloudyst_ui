@@ -9,6 +9,7 @@ import SettingForm from "../../../Pages/Setting/SettingForm";
 import { DenseFilledTextField } from "../../../Common/StyledComponents";
 import { NoMarginHelperText } from "../../Settings/Settings";
 import ApiKeySelectionInput from "../../Common/Ai/ApiKeySelectionInput";
+import { AiApiKeyPlatformSelect } from "../AiSelects";
 
 export interface NewApiKeyDialogProps {
   open: boolean;
@@ -19,10 +20,11 @@ export interface NewApiKeyDialogProps {
 const defaultApiKey: AiApiKey = {
   id: 0,
   name: "",
+  api_key: "",
   platform: "",
   url: "",
   status: Status.active,
-}
+};
 
 const NewApiKeyDialog = ({ open, onClose, onCreated }: NewApiKeyDialogProps) => {
   const { t } = useTranslation("dashboard");
@@ -31,25 +33,18 @@ const NewApiKeyDialog = ({ open, onClose, onCreated }: NewApiKeyDialogProps) => 
   const [loading, setLoading] = useState(false);
   const [apiKey, setApiKey] = useState<AiApiKey>({ ...defaultApiKey });
   const formRef = useRef<HTMLFormElement>(null);
-  const copyFromSrc = useRef<AiApiKey | undefined>(undefined);
 
   useEffect(() => {
     if (open) {
       setApiKey({ ...defaultApiKey });
       setCopyFrom(0);
-      copyFromSrc.current = undefined;
     }
-  }, [open])
+  }, [open]);
 
   const handleSubmit = () => {
     if (!formRef.current?.checkValidity()) {
       formRef.current?.reportValidity();
       return;
-    }
-
-    let newApiKey = { ...apiKey };
-    if (copyFrom != 0 && copyFromSrc.current) {
-      newApiKey = { ...copyFromSrc.current, id: 0, name: apiKey.name };
     }
 
     setLoading(true);
@@ -89,15 +84,42 @@ const NewApiKeyDialog = ({ open, onClose, onCreated }: NewApiKeyDialogProps) => 
               />
               <NoMarginHelperText>{t("apikey.nameOfApikeyDes")}</NoMarginHelperText>
             </SettingForm>
+            <SettingForm title={t("apikey.apiKey")} lgWidth={12}>
+              <DenseFilledTextField
+                fullWidth
+                required
+                value={apiKey.api_key}
+                onChange={(e) => setApiKey({ ...apiKey, api_key: e.target.value })}
+              />
+            </SettingForm>
+            <SettingForm title={t("apikey.platform")} lgWidth={12}>
+              <AiApiKeyPlatformSelect
+                required
+                value={apiKey.platform}
+                onChange={(platform) => setApiKey({ ...apiKey, platform })}
+              />
+            </SettingForm>
+            <SettingForm title={t("apikey.url")} lgWidth={12}>
+              <DenseFilledTextField
+                fullWidth
+                value={apiKey.url}
+                onChange={(e) => setApiKey({ ...apiKey, url: e.target.value })}
+              />
+            </SettingForm>
             <SettingForm title={t("apikey.copyFromExisting")} lgWidth={12}>
               <FormControl fullWidth>
                 <ApiKeySelectionInput
                   value={copyFrom}
                   onChange={setCopyFrom}
                   onChangeApiKey={(k) => {
-                    copyFromSrc.current = k;
+                    setApiKey((prev) => ({
+                      ...prev,
+                      api_key: k?.api_key ?? "",
+                      platform: k?.platform ?? "",
+                      url: k?.url ?? "",
+                    }));
                   }}
-                  emptyValue={"0"}
+                  emptyValue={0}
                   emptyText={"apikey.notCopy"}
                 />
               </FormControl>
@@ -106,7 +128,7 @@ const NewApiKeyDialog = ({ open, onClose, onCreated }: NewApiKeyDialogProps) => 
         </form>
       </DialogContent>
     </DraggableDialog>
-  )
+  );
 };
 
 export default NewApiKeyDialog;

@@ -4,7 +4,6 @@ import React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  DocumentProgress,
   GetDocumentResponse,
   GetKnowledgeResponse,
   GetKnowledgeStatsResponse,
@@ -33,6 +32,7 @@ import KnowledgeOverview from "./Knowledge/KnowledgeOverview.tsx";
 import { DocumentFilterValue, DocumentSortValue } from "./Knowledge/KnowledgeDocumentToolbar.tsx";
 import { confirmOperation } from "../../../redux/thunks/dialog.ts";
 import { useAiTaskTracker } from "./Knowledge/useAiTaskTracker.ts";
+import { DocumentProgress } from "../../../api/dashboard.ts";
 
 export interface KnowledgeTabProps {
   onStartRagChat?: (knowledgeId: string) => void;

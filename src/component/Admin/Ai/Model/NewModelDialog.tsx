@@ -4,11 +4,12 @@ import { useAppDispatch } from "../../../../redux/hooks";
 import { useEffect, useRef, useState } from "react";
 import { createModel } from "../../../../api/api";
 import DraggableDialog from "../../../Dialogs/DraggableDialog";
-import { DialogContent, FormControl, Stack } from "@mui/material";
+import { DialogContent, Stack } from "@mui/material";
 import SettingForm from "../../../Pages/Setting/SettingForm";
 import { DenseFilledTextField } from "../../../Common/StyledComponents";
 import { NoMarginHelperText } from "../../Settings/Settings";
 import ApiKeySelectionInput from "../../Common/Ai/ApiKeySelectionInput";
+import { AiModelTypeSelect } from "../AiSelects";
 
 export interface NewModelDialogProps {
   open: boolean;
@@ -19,9 +20,12 @@ export interface NewModelDialogProps {
 const defaultModel: AiModel = {
   id: 0,
   name: "",
+  model: "",
   type: "",
   platform: "",
 }
+
+const optionalNumber = (value: string) => (value === "" ? undefined : Number(value));
 
 const NewModelDialog = ({ open, onClose, onCreated }: NewModelDialogProps) => {
   const { t } = useTranslation("dashboard");
@@ -42,10 +46,8 @@ const NewModelDialog = ({ open, onClose, onCreated }: NewModelDialogProps) => {
       return;
     }
 
-    let newModel = { ...defaultModel }
-
     setLoading(true);
-    dispatch(createModel(newModel))
+    dispatch(createModel(model))
       .then((res) => {
         onCreated(res);
         onClose();
@@ -81,12 +83,20 @@ const NewModelDialog = ({ open, onClose, onCreated }: NewModelDialogProps) => {
               />
               <NoMarginHelperText>{t("model.nameOfModelDes")}</NoMarginHelperText>
             </SettingForm>
-            <SettingForm title={t("model.type")} lgWidth={12}>
+            <SettingForm title={t("model.model")} lgWidth={12}>
               <DenseFilledTextField
                 fullWidth
                 required
+                value={model.model ?? ""}
+                onChange={(e) => setModel({ ...model, model: e.target.value })}
+              />
+              <NoMarginHelperText>{t("model.providerModelDes")}</NoMarginHelperText>
+            </SettingForm>
+            <SettingForm title={t("model.type")} lgWidth={12}>
+              <AiModelTypeSelect
+                required
                 value={model.type}
-                onChange={(e) => setModel({ ...model, type: e.target.value })}
+                onChange={(type) => setModel({ ...model, type })}
               />
               <NoMarginHelperText>{t("model.typeOfModelDes")}</NoMarginHelperText>
             </SettingForm>
@@ -99,8 +109,8 @@ const NewModelDialog = ({ open, onClose, onCreated }: NewModelDialogProps) => {
                     min: 0,
                   }
                 }}
-                value={model.temperature}
-                onChange={(e) => setModel({ ...model, temperature: Number(e.target.value) })}
+                value={model.temperature ?? ""}
+                onChange={(e) => setModel((prev) => ({ ...prev, temperature: optionalNumber(e.target.value) }))}
               />
               <NoMarginHelperText>{t("model.temperatureOfModelDes")}</NoMarginHelperText>
             </SettingForm>
@@ -113,8 +123,8 @@ const NewModelDialog = ({ open, onClose, onCreated }: NewModelDialogProps) => {
                     min: 0,
                   }
                 }}
-                value={model.max_tokens}
-                onChange={(e) => setModel({ ...model, max_tokens: Number(e.target.value) })}
+                value={model.max_tokens ?? ""}
+                onChange={(e) => setModel((prev) => ({ ...prev, max_tokens: optionalNumber(e.target.value) }))}
               />
               <NoMarginHelperText>{t("model.maxTokensOfModelDes")}</NoMarginHelperText>
             </SettingForm>
@@ -127,8 +137,8 @@ const NewModelDialog = ({ open, onClose, onCreated }: NewModelDialogProps) => {
                     min: 0,
                   }
                 }}
-                value={model.max_contexts}
-                onChange={(e) => setModel({ ...model, max_contexts: Number(e.target.value) })}
+                value={model.max_contexts ?? ""}
+                onChange={(e) => setModel((prev) => ({ ...prev, max_contexts: optionalNumber(e.target.value) }))}
               />
               <NoMarginHelperText>{t("model.maxContextsOfModelDes")}</NoMarginHelperText>
             </SettingForm>

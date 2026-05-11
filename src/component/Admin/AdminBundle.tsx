@@ -1,8 +1,12 @@
+import ApiKeySetting from "./Ai/ApiKey/ApiKeySetting";
 import ChatConversationSetting from "./Ai/ChatConversation/ChatConversationSetting";
 import ChatMessageSetting from "./Ai/ChatMessage/ChatMessageSetting";
 import ChatRoleSetting from "./Ai/ChatRole/ChatRoleSetting";
 import ImageSetting from "./Ai/Image/ImageSetting";
+import KnowledgeSetting from "./Ai/Knowledge/KnowledgeSetting";
+import DocumentSetting from "./Ai/KnowledgeDocument/DocumentSetting";
 import KnowledgeSegmentSetting from "./Ai/KnowledgeSegment/KnowledgeSegmentSetting";
+import ModelSetting from "./Ai/Model/ModelSetting";
 import ToolSetting from "./Ai/Tool/ToolSetting";
 import EntitySetting from "./Entity/EntitySetting";
 import FileSetting from "./File/FileSetting";
@@ -21,9 +25,11 @@ import TaskList from "./Task/TaskList";
 import UserSetting from "./User/UserSetting";
 
 export {
+  ApiKeySetting,
   ChatConversationSetting,
   ChatMessageSetting,
   ChatRoleSetting,
+  DocumentSetting,
   EditGroup,
   EditNode,
   EditStoragePolicy,
@@ -33,7 +39,9 @@ export {
   GroupSetting,
   Home,
   ImageSetting,
+  KnowledgeSetting,
   KnowledgeSegmentSetting,
+  ModelSetting,
   NodeSetting,
   OauthCallback,
   Settings,

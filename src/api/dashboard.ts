@@ -153,6 +153,7 @@ export interface StoragePolicy extends CommonMixin {
   node?: Node;
   entities_count?: number;
   entities_size?: number;
+  hash_id?: string;
 }
 
 export enum NodeType {
@@ -575,8 +576,8 @@ export interface CleanupTaskService {
 }
 
 export enum Status {
-  active = 1,
-  inactive = 2,
+  active = "active",
+  inactive = "inactive",
 }
 
 export interface AiApiKey extends CommonMixin {
@@ -590,6 +591,7 @@ export interface AiApiKey extends CommonMixin {
 
 export interface AiModel extends CommonMixin {
   name?: string;
+  model?: string;
   type?: string;
   platform?: string;
   sort?: number;
@@ -723,6 +725,12 @@ export interface AiKnowledge {
   owner_info?: UserInfo;
 }
 
+export enum DocumentProgress {
+  Pending = "pending",
+  Processing = "processing",
+  Success = "success",
+  Failed = "failed",
+}
 export interface AiKnowledgeDocument extends CommonMixin {
   name?: string;
   knowledge_id?: number;
@@ -732,6 +740,7 @@ export interface AiKnowledgeDocument extends CommonMixin {
   tokens?: number;
   segment_max_tokens?: number;
   retrival_count?: number;
+  progress?: DocumentProgress;
   status?: Status;
   ai_knowledge?: AiKnowledgeModel;
   ai_knowledge_segment?: AiKnowledgeSegment[];
@@ -800,4 +809,34 @@ export interface ListAiKnowledgeDocumentResponse {
 export interface ListAiKnowledgeSegmentResponse {
   segments: AiKnowledgeSegment[];
   pagination: PaginationResults;
+}
+
+export interface OAuthClientProps {
+  icon?: string;
+  refresh_token_ttl?: number;
+}
+
+export interface OAuthClient extends CommonMixin {
+  guid?: string;
+  secret?: string;
+  name?: string;
+  homepage_url?: string; // Not used
+  redirect_uris?: string[];
+  scopes?: string[];
+  props?: OAuthClientProps;
+  is_enabled?: boolean;
+}
+
+export interface GetOAuthClientResponse extends OAuthClient {
+  is_system?: boolean;
+  total_grants?: number;
+}
+
+export interface ListOAuthClientResponse {
+  clients: GetOAuthClientResponse[];
+  pagination: PaginationResults;
+}
+
+export interface UpsertOAuthClientService {
+  client: OAuthClient;
 }

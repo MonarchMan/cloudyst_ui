@@ -1,7 +1,7 @@
 import { Button, Chip, FormControl, MenuItem, Select, SelectChangeEvent, Stack, TextField, Typography } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { DocumentProgress } from "../../../../api/ai.ts";
+import { DocumentProgress } from "../../../../api/dashboard";
 
 export type DocumentFilterValue = "all" | DocumentProgress;
 export type DocumentSortValue = "updated_desc" | "updated_asc";

@@ -32,11 +32,9 @@ import PageContainer from "../../../Pages/PageContainer";
 import PageHeader from "../../../Pages/PageHeader";
 import TablePagination from "../../Common/TablePagination";
 import { OrderByQuery, OrderDirectionQuery, PageQuery, PageSizeQuery } from "../../StoragePolicy/StoragePolicySetting";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions } from "../constants";
 import KnowledgeSegmentFilterPopover from "./KnowledgeSegmentFilterPopover";
 import KnowledgeSegmentRow from "./KnowledgeSegmentRow";
-
-export const DocumentIdQuery = "document_id";
-export const KnowledgeIdQuery = "knowledge_id";
 
 const KnowledgeSegmentSetting = () => {
   const { t } = useTranslation("dashboard");
@@ -53,8 +51,8 @@ const KnowledgeSegmentSetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [documentId, setDocumentId] = useQueryState(DocumentIdQuery, { defaultValue: "" });
-  const [knowledgeId, setKnowledgeId] = useQueryState(KnowledgeIdQuery, { defaultValue: "" });
+  const [documentId, setDocumentId] = useQueryState(AdminAiQuery.common.documentId, { defaultValue: "" });
+  const [knowledgeId, setKnowledgeId] = useQueryState(AdminAiQuery.common.knowledgeId, { defaultValue: "" });
   const [count, setCount] = useState(0);
   const [selected, setSelected] = useState<readonly number[]>([]);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -87,10 +85,10 @@ const KnowledgeSegmentSetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
+        conditions: buildConditions({
           document_id: documentId,
           knowledge_id: knowledgeId,
-        },
+        }),
       }),
     )
       .then((res) => {
@@ -210,7 +208,7 @@ const KnowledgeSegmentSetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -220,30 +218,30 @@ const KnowledgeSegmentSetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("segment.documentId")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("segment.knowledgeId")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>{t("segment.documentId")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>{t("segment.knowledgeId")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "content_length"} direction={direction} onClick={onSortClick("content_length")}>
                     {t("segment.contentLength")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={80}>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "tokens"} direction={direction} onClick={onSortClick("tokens")}>
                     {t("segment.tokens")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={150}>{t("segment.vectorId")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>{t("segment.vectorId")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "retrival_count"} direction={direction} onClick={onSortClick("retrival_count")}>
                     {t("segment.retrivalCount")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>

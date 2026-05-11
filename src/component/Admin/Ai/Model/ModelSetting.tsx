@@ -14,15 +14,13 @@ import ArrowSync from "../../../Icons/ArrowSync";
 import PageContainer from "../../../Pages/PageContainer";
 import PageHeader from "../../../Pages/PageHeader";
 import { PageQuery, PageSizeQuery, OrderByQuery, OrderDirectionQuery } from "../../StoragePolicy/StoragePolicySetting";
-import ApiKeyFilterPopover from "../ApiKey/ApiKeyFilterPopover";
+import ApiKeyDialog from "../ApiKey/ApiKeyDialog/ApiKeyDialog";
 import ModelDialog from "./ModelDialog/ModelDialog";
+import ModelFilterPopover from "./ModelFilterPopover";
 import NewModelDialog from "./NewModelDialog";
 import ModelRow from "./ModelRow";
 import TablePagination from "../../Common/TablePagination";
-
-export const NameQuery = "name";
-export const PlatformQuery = "platform";
-export const StatusQuery = "status";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions, parseAiStatusFilter } from "../constants";
 
 const ModelSetting = () => {
   const { t } = useTranslation("dashboard");
@@ -40,12 +38,12 @@ const ModelSetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [name, setName] = useQueryState(NameQuery, { defaultValue: "" });
-  const [platform, setPlatform] = useQueryState(PlatformQuery, { defaultValue: "" });
-  const [status, setStatus] = useQueryState(StatusQuery, { 
-    defaultValue: 0,
-    parse: (value) => parseInt(value) || 0,
-    serialize: (value) => value.toString()
+  const [name, setName] = useQueryState(AdminAiQuery.common.name, { defaultValue: "" });
+  const [model, setModel] = useQueryState(AdminAiQuery.common.model, { defaultValue: "" });
+  const [platform, setPlatform] = useQueryState(AdminAiQuery.common.platform, { defaultValue: "" });
+  const [status, setStatus] = useQueryState(AdminAiQuery.common.status, {
+    defaultValue: "",
+    parse: parseAiStatusFilter,
   });
   const [count, setCount] = useState(0);
 
@@ -57,20 +55,24 @@ const ModelSetting = () => {
   });
   const [modelDialogOpen, setmodelDialogOpen] = useState(false);
   const [modelDialogID, setmodelDialogID] = useState<number | undefined>(undefined);
+  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
+  const [apiKeyDialogID, setApiKeyDialogID] = useState<number | undefined>(undefined);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const pageInt = parseInt(page) ?? 1;
   const pageSizeInt = parseInt(pageSize) ?? 11;
+  const statusFilter = parseAiStatusFilter(status);
 
   const clearFilters = useCallback(() => {
     setName("");
+    setModel("");
     setPlatform("");
-    setStatus(0);
-  }, [setName, setPlatform, setStatus]);
+    setStatus("");
+  }, [setName, setModel, setPlatform, setStatus]);
 
   useEffect(() => {
     fetchmodels();
-  }, [page, pageSize, orderBy, orderDirection, name, platform, status]);
+  }, [page, pageSize, orderBy, orderDirection, name, model, platform, status]);
 
   const fetchmodels = () => {
     setLoading(true);
@@ -80,11 +82,12 @@ const ModelSetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
-          name: name,
-          platform: platform,
-          status: status.toString(),
-        },
+        conditions: buildConditions({
+          name,
+          model,
+          platform,
+          status: statusFilter,
+        }),
     }))
       .then((res) => {
         setModels(res.models);
@@ -151,12 +154,17 @@ const ModelSetting = () => {
   };
 
   const hasActiveFilters = useMemo(() => {
-    return !!(name || platform || status);
-  }, [name, platform, status]);
+    return !!(name || model || platform || statusFilter);
+  }, [name, model, platform, statusFilter]);
 
   const handlemodelDialogOpen = (id: number) => {
     setmodelDialogID(id);
     setmodelDialogOpen(true);
+  };
+
+  const handleApiKeyDialogOpen = (id: number) => {
+    setApiKeyDialogID(id);
+    setApiKeyDialogOpen(true);
   };
 
   return (
@@ -177,6 +185,13 @@ const ModelSetting = () => {
         onUpdated={() => fetchmodels()}
       />
 
+      <ApiKeyDialog
+        open={apiKeyDialogOpen}
+        onClose={() => setApiKeyDialogOpen(false)}
+        apiKeyID={apiKeyDialogID}
+        onUpdated={() => fetchmodels()}
+      />
+
       <Container maxWidth="xl">
         <PageHeader title={t("dashboard.nav.models")} />
         <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
@@ -184,14 +199,16 @@ const ModelSetting = () => {
             {t("group.create")}
           </Button>
 
-          <ApiKeyFilterPopover
+          <ModelFilterPopover
             {...bindPopover(filterPopupState)}
             name={name}
             setName={setName}
+            model={model}
+            setModel={setModel}
             platform={platform}
             setPlatform={setPlatform}
-            status={status}
-            setStatus={setStatus}
+            status={statusFilter}
+            setStatus={(value) => setStatus(value)}
             clearFilters={clearFilters}
           />
 
@@ -227,7 +244,7 @@ const ModelSetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -237,43 +254,48 @@ const ModelSetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={250}>
+                <NoWrapTableCell width={AiTableColumnWidth.longText}>
                   <TableSortLabel active={orderBy === "name"} direction={direction} onClick={onSortClick("name")}>
                     {t("model.name")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={250}>
+                <NoWrapTableCell width={AiTableColumnWidth.longText}>
+                  <TableSortLabel active={orderBy === "model"} direction={direction} onClick={onSortClick("model")}>
+                    {t("model.model")}
+                  </TableSortLabel>
+                </NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.mediumText}>
                   <TableSortLabel active={orderBy === "platform"} direction={direction} onClick={onSortClick("platform")}>
                     {t("model.platform")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={60}>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "sort"} direction={direction} onClick={onSortClick("sort")}>
                     {t("model.sort")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={60}>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "temperature"} direction={direction} onClick={onSortClick("temperature")}>
                     {t("model.temperature")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={60}>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>
                   <TableSortLabel active={orderBy === "maxTokens"} direction={direction} onClick={onSortClick("maxTokens")}>
                     {t("model.maxTokens")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={60}>
+                <NoWrapTableCell width={AiTableColumnWidth.shortText}>
                   <TableSortLabel active={orderBy === "maxContexts"} direction={direction} onClick={onSortClick("maxContexts")}>
                     {t("model.maxContexts")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={150}>{t("model.apiKey")}</NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.mediumText}>{t("model.apiKey")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -287,6 +309,7 @@ const ModelSetting = () => {
                     selected={selected.includes(model.id)}
                     onSelect={handleSelect}
                     onDetails={handlemodelDialogOpen}
+                    openApiKeyDialog={handleApiKeyDialogOpen}
                   />
                 ))}
                 {loading &&

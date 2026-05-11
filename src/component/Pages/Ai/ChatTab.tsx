@@ -151,8 +151,8 @@ const buildConversationTurns = (messages: MessageRecord[]): ConversationTurn[] =
       return;
     }
 
-    if (message.parent_send_id) {
-      const parentTurn = turnBySendId.get(message.parent_send_id);
+    if (message.reply_id) {
+      const parentTurn = turnBySendId.get(message.reply_id);
       if (parentTurn) {
         parentTurn.responses.push(message);
         return;
@@ -720,20 +720,20 @@ const ChatTab = ({ draftKnowledgeId, onDraftKnowledgeApplied }: ChatTabProps) =>
   }, [dispatch]);
 
   useEffect(() => {
-    if (!currentConv?.model) {
+    if (!currentConv?.model_id) {
       return;
     }
 
-    if (models.some((model) => model.id === currentConv.model)) {
+    if (models.some((model) => model.id === currentConv.model_id)) {
       return;
     }
 
-    dispatch(getModel(currentConv.model))
+    dispatch(getModel(currentConv.model_id))
       .then((model) => {
         setModels((prev) => ensureModel(prev, model));
       })
       .catch(() => undefined);
-  }, [currentConv?.model, dispatch, models]);
+  }, [currentConv?.model_id, dispatch, models]);
 
   useEffect(() => {
     if (currentID) {
@@ -819,7 +819,7 @@ const ChatTab = ({ draftKnowledgeId, onDraftKnowledgeApplied }: ChatTabProps) =>
 
     setDraftTitle(currentConv.title || "");
     setDraftSystemMessage(currentConv.system_message || "");
-    setDraftModelId(currentConv.model || defaultModel?.id || "");
+    setDraftModelId(currentConv.model_id || defaultModel?.id || "");
     setDraftTemperature(currentConv.temperature ?? defaultModel?.temperature ?? defaultTemperature);
     setDraftMaxTokens(currentConv.max_tokens ?? defaultModel?.max_tokens ?? defaultMaxTokens);
     setDraftMaxContexts(currentConv.max_contexts ?? defaultModel?.max_contexts ?? defaultMaxContexts);
@@ -974,7 +974,7 @@ const ChatTab = ({ draftKnowledgeId, onDraftKnowledgeApplied }: ChatTabProps) =>
 
     setDraftTitle(currentConv.title || "");
     setDraftSystemMessage(currentConv.system_message || "");
-    setDraftModelId(currentConv.model || defaultModel?.id || "");
+    setDraftModelId(currentConv.model_id || defaultModel?.id || "");
     setDraftTemperature(currentConv.temperature ?? defaultModel?.temperature ?? defaultTemperature);
     setDraftMaxTokens(currentConv.max_tokens ?? defaultModel?.max_tokens ?? defaultMaxTokens);
     setDraftMaxContexts(currentConv.max_contexts ?? defaultModel?.max_contexts ?? defaultMaxContexts);

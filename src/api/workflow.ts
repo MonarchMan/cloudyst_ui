@@ -37,6 +37,7 @@ export interface TaskSummary {
     src_multiple?: string[];
     dst_policy_id?: string;
     failed?: number;
+    total?: number;
     download?: DownloadTaskStatus;
   };
 }
@@ -160,4 +161,8 @@ export interface SetFileToDownloadArgs {
 
 export interface SetDownloadFilesService {
   files: SetFileToDownloadArgs[];
+}
+
+export interface RebuildFTSIndexWorkflowService {
+  filtered_storage_policy?: number[];
 }

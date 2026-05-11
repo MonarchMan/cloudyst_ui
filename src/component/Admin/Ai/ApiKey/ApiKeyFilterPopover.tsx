@@ -1,17 +1,18 @@
-import { Box, Button, FormControl, ListItemText, Popover, PopoverProps, Stack } from "@mui/material";
+import { Box, Button, Popover, PopoverProps, Stack } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SettingForm from "../../../Pages/Setting/SettingForm";
-import { DenseFilledTextField, DenseSelect } from "../../../Common/StyledComponents";
-import { SquareMenuItem } from "../../../FileManager/ContextMenu/ContextMenu";
+import { DenseFilledTextField } from "../../../Common/StyledComponents";
+import { AiStatusSelect } from "../AiSelects";
+import { AiStatusFilterValue } from "../constants";
 
 export interface ApiKeyFilterPopoverProps extends PopoverProps {
   name: string;
   setName: (name: string) => void;
   platform: string;
   setPlatform: (name: string) => void;
-  status: number;
-  setStatus: (status: number) => void;
+  status: AiStatusFilterValue;
+  setStatus: (status: AiStatusFilterValue) => void;
   clearFilters: () => void;
 }
 
@@ -46,7 +47,7 @@ const ApiKeyFilterPopover = ({
   const handleApplyFilters = () => {
     setName(localName);
     setPlatform(localPlatform == " " ? "" : localPlatform);
-    setLocalStatus(status);
+    setStatus(localStatus);
     onClose?.({}, "backdropClick");
   };
 
@@ -54,7 +55,8 @@ const ApiKeyFilterPopover = ({
   const handleResetFilters = () => {
     setName("");
     setPlatform("");
-    setLocalStatus(0);
+    setStatus("");
+    setLocalStatus("");
     onClose?.({}, "backdropClick");
   };
 
@@ -102,28 +104,7 @@ const ApiKeyFilterPopover = ({
           />
         </SettingForm>
         <SettingForm title={t("common.status")} noContainer lgWidth={12}>
-          <FormControl fullWidth>
-            <DenseSelect
-              value={localStatus === undefined ? 0 : localStatus}
-              onChange={(e) => setLocalStatus(Number(e.target.value))}
-            >
-              <SquareMenuItem value={0}>
-                <ListItemText slotProps={{ primary: { variant: "body2" } }}>
-                  <em>{t("common.all")}</em>
-                </ListItemText>
-              </SquareMenuItem>
-              <SquareMenuItem value={1}>
-                <ListItemText slotProps={{ primary: {variant: "body2" }}}>
-                  {t("common.status_active")}
-                </ListItemText>
-              </SquareMenuItem>
-              <SquareMenuItem value={2}>
-                <ListItemText slotProps={{ primary: {variant: "body2" }}}>
-                  {t("common.status_inactive")}
-                </ListItemText>
-              </SquareMenuItem>
-            </DenseSelect>
-          </FormControl>
+          <AiStatusSelect includeAll value={localStatus ?? ""} onChange={setLocalStatus} />
         </SettingForm>
 
         <Box display="flex" justifyContent="space-between">

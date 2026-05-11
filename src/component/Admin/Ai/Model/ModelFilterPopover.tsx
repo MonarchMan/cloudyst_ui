@@ -1,61 +1,67 @@
-import { Popover, Stack, Box, Button, PopoverProps } from "@mui/material";
-import { useState, useEffect } from "react";
+import { Box, Button, Popover, PopoverProps, Stack } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DenseFilledTextField } from "../../../Common/StyledComponents";
 import SettingForm from "../../../Pages/Setting/SettingForm";
 import { AiStatusSelect } from "../AiSelects";
 import { AiStatusFilterValue } from "../constants";
 
-export interface DocumentFilterPopoverProps extends PopoverProps {
+export interface ModelFilterPopoverProps extends PopoverProps {
   name: string;
   setName: (name: string) => void;
-  knowledge: string;
-  setKnowledge: (kowledgeID: string) => void;
+  model: string;
+  setModel: (model: string) => void;
+  platform: string;
+  setPlatform: (platform: string) => void;
   status: AiStatusFilterValue;
   setStatus: (status: AiStatusFilterValue) => void;
   clearFilters: () => void;
 }
 
-const DocumentFilterPopover = ({
+const ModelFilterPopover = ({
   name,
   setName,
-  knowledge,
-  setKnowledge,
+  model,
+  setModel,
+  platform,
+  setPlatform,
   status,
   setStatus,
-  clearFilters,
   onClose,
   open,
   ...rest
-}: DocumentFilterPopoverProps) => {
+}: ModelFilterPopoverProps) => {
   const { t } = useTranslation("dashboard");
-
-  // Create local state to track changes before applying
   const [localName, setLocalName] = useState(name);
-  const [localKnowledge, setLocalKnowledge] = useState(knowledge);
+  const [localModel, setLocalModel] = useState(model);
+  const [localPlatform, setLocalPlatform] = useState(platform);
   const [localStatus, setLocalStatus] = useState(status);
 
   useEffect(() => {
-    if(open) {
+    if (open) {
       setLocalName(name);
-      setLocalKnowledge(knowledge);
+      setLocalModel(model);
+      setLocalPlatform(platform);
       setLocalStatus(status);
     }
-  }, [open]);
-  
-  // Apply filters and close popover
+  }, [model, name, open, platform, status]);
+
   const handleApplyFilters = () => {
     setName(localName);
-    setKnowledge(localKnowledge);
+    setModel(localModel);
+    setPlatform(localPlatform);
     setStatus(localStatus);
     onClose?.({}, "backdropClick");
   };
 
-  // Reset filters and close popover
   const handleResetFilters = () => {
     setName("");
-    setKnowledge("");
+    setModel("");
+    setPlatform("");
     setStatus("");
+    setLocalName("");
+    setLocalModel("");
+    setLocalPlatform("");
     setLocalStatus("");
     onClose?.({}, "backdropClick");
   };
@@ -74,7 +80,7 @@ const DocumentFilterPopover = ({
         paper: {
           sx: {
             p: 2,
-            widows: 300,
+            width: 320,
             maxWidth: "100%",
           },
         },
@@ -84,35 +90,46 @@ const DocumentFilterPopover = ({
       {...rest}
     >
       <Stack spacing={2}>
-        <SettingForm title={t("document.name")} noContainer lgWidth={12}>
+        <SettingForm title={t("model.name")} noContainer lgWidth={12}>
           <DenseFilledTextField
             fullWidth
             value={localName}
             onChange={(e) => setLocalName(e.target.value)}
-            placeholder={t("document.emptyNoFilter")}
+            placeholder={t("apikey.emptyNoFilter")}
             size="small"
           />
         </SettingForm>
 
-        <SettingForm title={t("document.knowledge")} noContainer lgWidth={12}>
+        <SettingForm title={t("model.model")} noContainer lgWidth={12}>
           <DenseFilledTextField
             fullWidth
-            value={localKnowledge}
-            onChange={(e) => setLocalKnowledge(e.target.value)}
-            placeholder={t("document.emptyNoFilter")}
+            value={localModel}
+            onChange={(e) => setLocalModel(e.target.value)}
+            placeholder={t("apikey.emptyNoFilter")}
             size="small"
           />
         </SettingForm>
+
+        <SettingForm title={t("model.platform")} noContainer lgWidth={12}>
+          <DenseFilledTextField
+            fullWidth
+            value={localPlatform}
+            onChange={(e) => setLocalPlatform(e.target.value)}
+            placeholder={t("apikey.emptyNoFilter")}
+            size="small"
+          />
+        </SettingForm>
+
         <SettingForm title={t("common.status")} noContainer lgWidth={12}>
-          <AiStatusSelect includeAll value={localStatus ?? ""} onChange={setLocalStatus} />
+          <AiStatusSelect includeAll value={localStatus} onChange={setLocalStatus} />
         </SettingForm>
 
         <Box display="flex" justifyContent="space-between">
           <Button variant="outlined" size="small" onClick={handleResetFilters}>
-            {t("document.reset")}
+            {t("apikey.reset")}
           </Button>
           <Button variant="contained" size="small" onClick={handleApplyFilters}>
-            {t("document.apply")}
+            {t("apikey.apply")}
           </Button>
         </Box>
       </Stack>
@@ -120,4 +137,4 @@ const DocumentFilterPopover = ({
   );
 };
 
-export default DocumentFilterPopover;
+export default ModelFilterPopover;

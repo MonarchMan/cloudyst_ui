@@ -20,11 +20,7 @@ import NewKnowledgeDialog from "./NewKnowledgeDialog";
 import TablePagination from "../../Common/TablePagination";
 import KnowledgeFilterPopover from "./KnowledgeFilterPopover";
 import UserDialog from "../../User/UserDialog/UserDialog";
-
-export const NameQuery = "name";
-export const StatusQuery = "status";
-export const IsPublicQuery = "is_public";
-export const IsMasterQuery = "is_master";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions, parseAiStatusFilter } from "../constants";
 
 const KnowledgeSetting = () => {
   const { t } = useTranslation("dashboard");
@@ -42,13 +38,12 @@ const KnowledgeSetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [name, setName] = useQueryState(NameQuery, { defaultValue: "" });
-  const [isPublic, setIsPublic] = useQueryState(IsPublicQuery, { defaultValue: ""});
-  const [isMaster, setIsMaster] = useQueryState(IsMasterQuery, { defaultValue: ""});
-  const [status, setStatus] = useQueryState(StatusQuery, { 
-    defaultValue: 0,
-    parse: (value) => parseInt(value) || 0,
-    serialize: (value) => value.toString()
+  const [name, setName] = useQueryState(AdminAiQuery.common.name, { defaultValue: "" });
+  const [isPublic, setIsPublic] = useQueryState(AdminAiQuery.knowledge.isPublic, { defaultValue: ""});
+  const [isMaster, setIsMaster] = useQueryState(AdminAiQuery.knowledge.isMaster, { defaultValue: ""});
+  const [status, setStatus] = useQueryState(AdminAiQuery.common.status, {
+    defaultValue: "",
+    parse: parseAiStatusFilter,
   });
   const [count, setCount] = useState(0);
 
@@ -67,10 +62,11 @@ const KnowledgeSetting = () => {
 
   const pageInt = parseInt(page) ?? 1;
   const pageSizeInt = parseInt(pageSize) ?? 11;
+  const statusFilter = parseAiStatusFilter(status);
 
   const clearFilters = useCallback(() => {
     setName("");
-    setStatus(0);
+    setStatus("");
     setIsPublic("");
     setIsMaster("");
   }, [setName, setStatus, setIsMaster, setIsPublic]);
@@ -87,12 +83,12 @@ const KnowledgeSetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
-          name: name,
-          status: status.toString(),
+        conditions: buildConditions({
+          name,
+          status: statusFilter,
           isPublic: isPublic === "true" ? "true" : "",
           isMaster: isMaster === "true" ? "true" : "",
-        },
+        }),
     }))
       .then((res) => {
         setKnowledges(res.knowledges);
@@ -159,8 +155,8 @@ const KnowledgeSetting = () => {
   };
 
   const hasActiveFilters = useMemo(() => {
-    return !!(name || status || isPublic || isMaster);
-  }, [name, status, isPublic, isMaster]);
+    return !!(name || statusFilter || isPublic || isMaster);
+  }, [name, statusFilter, isPublic, isMaster]);
 
   const handleKnowledgeDialogOpen = (id: number) => {
     setKnowledgeDialogID(id);
@@ -202,8 +198,8 @@ const KnowledgeSetting = () => {
             {...bindPopover(filterPopupState)}
             name={name}
             setName={setName}
-            status={status}
-            setStatus={setStatus}
+            status={statusFilter}
+            setStatus={(value) => setStatus(value)}
             clearFilters={clearFilters}
             setIsPublic={(value: boolean) => setIsPublic(value ? "true" : "")}
             isPublic={isPublic === "true"}
@@ -242,7 +238,7 @@ const KnowledgeSetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -252,29 +248,29 @@ const KnowledgeSetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={100}>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>
                   <TableSortLabel active={orderBy === "name"} direction={direction} onClick={onSortClick("name")}>
                     {t("knowledge.name")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={100}>
+                <NoWrapTableCell width={AiTableColumnWidth.status}>
                   <TableSortLabel active={orderBy === "topK"} direction={direction} onClick={onSortClick("topK")}>
                     {t("knowledge.topK")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={100}>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "similarity"} direction={direction} onClick={onSortClick("similarity")}>
                     {t("knowledge.similarity")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={150}>{t("knowledge.owner")}</NoWrapTableCell>
-                <NoWrapTableCell width={60}>{t("knowledge.isMaster")}</NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.mediumText}>{t("knowledge.owner")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>{t("knowledge.isMaster")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>

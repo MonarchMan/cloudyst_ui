@@ -18,12 +18,9 @@ import DocumentDialog from "./KnowledgeDocumentDialog/DocumentDialog";
 import DocumentRow from "./DocumentRow";
 import TablePagination from "../../Common/TablePagination";
 import DocumentFilterPopover from "./DocumentFilterPopover";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions, parseAiStatusFilter } from "../constants";
 
-export const NameQuery = "name";
-export const KnowledgeQuery = "knowledge_id";
-export const StatusQuery = "status";
-
-const documentSetting = () => {
+const DocumentSetting = () => {
   const { t } = useTranslation("dashboard");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -39,12 +36,11 @@ const documentSetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [name, setName] = useQueryState(NameQuery, { defaultValue: "" });
-  const [knowledge, setKnowledge] = useQueryState(KnowledgeQuery, { defaultValue: ""});
-  const [status, setStatus] = useQueryState(StatusQuery, { 
-    defaultValue: 0,
-    parse: (value) => parseInt(value) || 0,
-    serialize: (value) => value.toString()
+  const [name, setName] = useQueryState(AdminAiQuery.common.name, { defaultValue: "" });
+  const [knowledge, setKnowledge] = useQueryState(AdminAiQuery.common.knowledgeId, { defaultValue: ""});
+  const [status, setStatus] = useQueryState(AdminAiQuery.common.status, {
+    defaultValue: "",
+    parse: parseAiStatusFilter,
   });
   const [count, setCount] = useState(0);
 
@@ -60,11 +56,12 @@ const documentSetting = () => {
 
   const pageInt = parseInt(page) ?? 1;
   const pageSizeInt = parseInt(pageSize) ?? 11;
+  const statusFilter = parseAiStatusFilter(status);
 
   const clearFilters = useCallback(() => {
     setName("");
     setKnowledge("");
-    setStatus(0);
+    setStatus("");
   }, [setName, setKnowledge, setStatus]);
 
   useEffect(() => {
@@ -79,11 +76,11 @@ const documentSetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
-          name: name,
+        conditions: buildConditions({
+          name,
           knowledgeID: knowledge,
-          status: status.toString(),
-        },
+          status: statusFilter,
+        }),
     }))
       .then((res) => {
         setDocuments(res.documents);
@@ -150,8 +147,8 @@ const documentSetting = () => {
   };
 
   const hasActiveFilters = useMemo(() => {
-    return !!(name || knowledge || status);
-  }, [name, knowledge, status]);
+    return !!(name || knowledge || statusFilter);
+  }, [name, knowledge, statusFilter]);
 
   const handledocumentDialogOpen = (id: number) => {
     setDocumentDialogID(id);
@@ -180,8 +177,8 @@ const documentSetting = () => {
             setName={setName}
             knowledge={knowledge}
             setKnowledge={setKnowledge}
-            status={status}
-            setStatus={setStatus}
+            status={statusFilter}
+            setStatus={(value) => setStatus(value)}
             clearFilters={clearFilters}
           />
 
@@ -217,7 +214,7 @@ const documentSetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -227,40 +224,40 @@ const documentSetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={250}>
+                <NoWrapTableCell width={AiTableColumnWidth.longText}>
                   <TableSortLabel active={orderBy === "name"} direction={direction} onClick={onSortClick("name")}>
                     {t("document.name")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={250}>{t("document.url")}</NoWrapTableCell>
-                <NoWrapTableCell width={60}>{t("document.version")}</NoWrapTableCell>
-                <NoWrapTableCell width={60}>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>{t("document.url")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>{t("document.version")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "contentLength"} direction={direction} onClick={onSortClick("contentLength")}>
                     {t("document.contentLength")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={60}>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "tokens"} direction={direction} onClick={onSortClick("tokens")}>
                     {t("document.tokens")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={60}>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "segmentMaxContexts"} direction={direction} onClick={onSortClick("segmentMaxContexts")}>
                     {t("document.segmentMaxContexts")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={60}>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>
                   <TableSortLabel active={orderBy === "retrievalCount"} direction={direction} onClick={onSortClick("retrievalCount")}>
                     {t("document.retrievalCount")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={150}>{t("document.knowledge")}</NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.mediumText}>{t("document.knowledge")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -302,3 +299,5 @@ const documentSetting = () => {
     </PageContainer>
   );
 };
+
+export default DocumentSetting;

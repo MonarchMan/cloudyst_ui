@@ -20,10 +20,7 @@ import Delete from "../../../Icons/Delete";
 import Filter from "../../../Icons/Filter";
 import ApiKeyRow from "./ApiKeyRow";
 import TablePagination from "../../Common/TablePagination";
-
-export const NameQuery = "name";
-export const PlatformQuery = "platform";
-export const StatusQuery = "status";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions, parseAiStatusFilter } from "../constants";
 
 const ApiKeySetting = () => {
   const { t } = useTranslation("dashboard");
@@ -41,12 +38,11 @@ const ApiKeySetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [name, setName] = useQueryState(NameQuery, { defaultValue: "" });
-  const [platform, setPlatform] = useQueryState(PlatformQuery, { defaultValue: "" });
-  const [status, setStatus] = useQueryState(StatusQuery, { 
-    defaultValue: 0,
-    parse: (value) => parseInt(value) || 0,
-    serialize: (value) => value.toString()
+  const [name, setName] = useQueryState(AdminAiQuery.common.name, { defaultValue: "" });
+  const [platform, setPlatform] = useQueryState(AdminAiQuery.common.platform, { defaultValue: "" });
+  const [status, setStatus] = useQueryState(AdminAiQuery.common.status, {
+    defaultValue: "",
+    parse: parseAiStatusFilter,
   });
   const [count, setCount] = useState(0);
 
@@ -62,11 +58,12 @@ const ApiKeySetting = () => {
 
   const pageInt = parseInt(page) ?? 1;
   const pageSizeInt = parseInt(pageSize) ?? 11;
+  const statusFilter = parseAiStatusFilter(status);
 
   const clearFilters = useCallback(() => {
     setName("");
     setPlatform("");
-    setStatus(0);
+    setStatus("");
   }, [setName, setPlatform, setStatus]);
 
   useEffect(() => {
@@ -81,11 +78,11 @@ const ApiKeySetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
-          name: name,
-          platform: platform,
-          status: status.toString(),
-        },
+        conditions: buildConditions({
+          name,
+          platform,
+          status: statusFilter,
+        }),
     }))
       .then((res) => {
         setApiKeys(res.api_keys);
@@ -152,8 +149,8 @@ const ApiKeySetting = () => {
   };
 
   const hasActiveFilters = useMemo(() => {
-    return !!(name || platform || status);
-  }, [name, platform, status]);
+    return !!(name || platform || statusFilter);
+  }, [name, platform, statusFilter]);
 
   const handleApiKeyDialogOpen = (id: number) => {
     setApiKeyDialogID(id);
@@ -191,8 +188,8 @@ const ApiKeySetting = () => {
             setName={setName}
             platform={platform}
             setPlatform={setPlatform}
-            status={status}
-            setStatus={setStatus}
+            status={statusFilter}
+            setStatus={(value) => setStatus(value)}
             clearFilters={clearFilters}
           />
 
@@ -228,7 +225,7 @@ const ApiKeySetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -238,26 +235,26 @@ const ApiKeySetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={250}>
+                <NoWrapTableCell width={AiTableColumnWidth.longText}>
                   <TableSortLabel active={orderBy === "name"} direction={direction} onClick={onSortClick("name")}>
                     {t("apikey.name")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={250}>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>
                   {t("apikey.apiKey")}
                 </NoWrapTableCell>
-                <NoWrapTableCell width={250}>
+                <NoWrapTableCell width={AiTableColumnWidth.mediumText}>
                   {t("apikey.platform")}
                 </NoWrapTableCell>
-                <NoWrapTableCell width={250}>
+                <NoWrapTableCell width={AiTableColumnWidth.longText}>
                   {t("apikey.url")}
                 </NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>

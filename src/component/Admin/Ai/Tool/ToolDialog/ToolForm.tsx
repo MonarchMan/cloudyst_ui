@@ -1,11 +1,11 @@
-import { Box, FormControl, Grid2 as Grid, ListItemText, SelectChangeEvent, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Grid2 as Grid, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { ToolDialogContext } from "./ToolDialog";
 import SettingForm from "../../../../Pages/Setting/SettingForm";
 import { Status } from "../../../../../api/dashboard";
-import { DenseFilledTextField, DenseSelect } from "../../../../Common/StyledComponents";
-import { SquareMenuItem } from "../../../../FileManager/ContextMenu/ContextMenu";
+import { DenseFilledTextField } from "../../../../Common/StyledComponents";
+import { AiStatusSelect } from "../../AiSelects";
 
 const ToolForm = () => {
   const theme = useTheme();
@@ -41,13 +41,6 @@ const ToolForm = () => {
     [setTool],
   );
 
-  const onStatusChange = useCallback(
-    (e: SelectChangeEvent<unknown>) => {
-      setTool((prev) => ({ ...prev, status: Number(e.target.value) as Status }));
-    },
-    [setTool],
-  );
-
   return (
     <Box>
       <Grid container spacing={isMobile ? 2 : 3} alignItems={"stretch"}>
@@ -72,20 +65,10 @@ const ToolForm = () => {
         </SettingForm>
 
         <SettingForm title={t("tool.status")} noContainer lgWidth={6}>
-          <FormControl fullWidth>
-            <DenseSelect value={values.status} onChange={onStatusChange}>
-              <SquareMenuItem value={1}>
-                <ListItemText slotProps={{ primary: { variant: "body2" } }}>
-                  {t("common.status_active")}
-                </ListItemText>
-              </SquareMenuItem>
-              <SquareMenuItem value={2}>
-                <ListItemText slotProps={{ primary: { variant: "body2" } }}>
-                  {t("common.status_inactive")}
-                </ListItemText>
-              </SquareMenuItem>
-            </DenseSelect>
-          </FormControl>
+          <AiStatusSelect
+            value={values.status}
+            onChange={(status) => setTool((prev) => ({ ...prev, status: status as Status }))}
+          />
         </SettingForm>
 
         <SettingForm title={t("tool.createdAt")} noContainer lgWidth={6}>

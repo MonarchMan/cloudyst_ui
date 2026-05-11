@@ -63,6 +63,9 @@ import {
   ListAiToolResponse,
   AiImage,
   AiChatRoleModel,
+  GetOAuthClientResponse,
+  ListOAuthClientResponse,
+  UpsertOAuthClientService,
 } from "./dashboard.ts";
 import {
   ArchiveListFilesResponse,
@@ -102,9 +105,12 @@ import { AdminSettingResponse, CreateDavAccountService, DavAccount, ListDavAccou
 import { ListShareResponse, ListShareService } from "./share.ts";
 import { CaptchaResponse, SiteBasicInfoResponse, SiteConfig } from "./site.ts";
 import {
+  AppRegistration,
   Capacity,
   FinishPasskeyLoginService,
   FinishPasskeyRegistrationService,
+  GrantResponse,
+  GrantService,
   Init2FAResponse,
   LoginResponse,
   Passkey,
@@ -127,6 +133,7 @@ import {
   DownloadWorkflowService,
   ImportWorkflowService,
   ListTaskService,
+  RebuildFTSIndexWorkflowService,
   SetDownloadFilesService,
   TaskListResponse,
   TaskProgresses,
@@ -1474,7 +1481,7 @@ export function getQueueMetrics(service?: ServiceName): ThunkResponse<QueueMetri
     service = service || ServiceName.file;
     return await dispatch(
       send(
-        `/admin/${service}/queue/metrics`,
+        `/${service}/admin/queue/metrics`,
         { method: "GET" },
         {
           ...defaultOpts,
@@ -1961,7 +1968,7 @@ export function getTaskList(args: AdminListService, service?: ServiceName): Thun
     service = service || ServiceName.file;
     return await dispatch(
       send(
-        `/admin/${service}/queue`,
+        `/${service}/admin/queue`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -1976,7 +1983,7 @@ export function getTaskDetail(id: number, service?: ServiceName): ThunkResponse<
     service = service || ServiceName.file;
     return await dispatch(
       send(
-        `/admin/${service}/queue/${id}`,
+        `/${service}/admin/queue/${id}`,
         { method: "GET" },
         {
           ...defaultOpts,
@@ -1991,7 +1998,7 @@ export function batchDeleteTasks(args: BatchIDService, service?: ServiceName): T
     service = service || ServiceName.file;
     return await dispatch(
       send(
-        `/admin/${service}/queue/batch/delete`,
+        `/${service}/admin/queue/batch/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2117,12 +2124,151 @@ export function getArchiveListFiles(args: ArchiveListFilesService): ThunkRespons
   };
 }
 
+export function getOauthAppRegistration(app_id: string): ThunkResponse<AppRegistration> {
+  return async (dispatch, _getState) => {
+    return await dispatch(send(`/session/oauth/app/${app_id}`, { method: "GET" }, { ...defaultOpts }));
+  };
+}
+
+export function sendConsentOauthApp(args: GrantService): ThunkResponse<GrantResponse> {
+  return async (dispatch, _getState) => {
+    return await dispatch(
+      send(`/session/oauth/consent`, { method: "POST", data: args }, { bypassSnackbar: (e) => true, ...defaultOpts }),
+    );
+  };
+}
+
+export function getOAuthClientList(args: AdminListService): ThunkResponse<ListOAuthClientResponse> {
+  return async (dispatch, _getState) => {
+    return await dispatch(
+      send(
+        `/admin/oauthClient`,
+        { method: "POST", data: args },
+        {
+          ...defaultOpts,
+        },
+      ),
+    );
+  };
+}
+
+export function getOAuthClientDetail(id: number): ThunkResponse<GetOAuthClientResponse> {
+  return async (dispatch, _getState) => {
+    return await dispatch(
+      send(
+        `/admin/oauthClient/${id}`,
+        { method: "GET" },
+        {
+          ...defaultOpts,
+        },
+      ),
+    );
+  };
+}
+
+export function upsertOAuthClient(args: UpsertOAuthClientService): ThunkResponse<GetOAuthClientResponse> {
+  return async (dispatch, _getState) => {
+    return await dispatch(
+      send(
+        `/admin/oauthClient${args.client.id ? `/${args.client.id}` : ""}`,
+        { method: "PUT", data: args },
+        {
+          ...defaultOpts,
+        },
+      ),
+    );
+  };
+}
+
+export function deleteOAuthClient(id: number): ThunkResponse<void> {
+  return async (dispatch, _getState) => {
+    return await dispatch(
+      send(
+        `/admin/oauthClient/${id}`,
+        { method: "DELETE" },
+        {
+          ...defaultOpts,
+        },
+      ),
+    );
+  };
+}
+
+export function batchDeleteOAuthClients(args: BatchIDService): ThunkResponse<void> {
+  return async (dispatch, _getState) => {
+    return await dispatch(
+      send(
+        `/admin/oauthClient/batch/delete`,
+        { method: "POST", data: args },
+        {
+          ...defaultOpts,
+        },
+      ),
+    );
+  };
+}
+
+export function sendRevokeOAuthGrant(grant_id: string): ThunkResponse {
+  return async (dispatch, _getState) => {
+    return await dispatch(
+      send(
+        `/session/oauth/grant/${grant_id}`,
+        {
+          method: "DELETE",
+        },
+        {
+          ...defaultOpts,
+        },
+      ),
+    );
+  };
+}
+
+export function sendFullTextSearch(query: string, offset?: number): ThunkResponse {
+  const params = new URLSearchParams();
+  params.set("query", query);
+  if (offset) {
+    params.set("offset", offset.toString());
+  }
+  return async (dispatch, _getState) => {
+    return await dispatch(
+      send(
+        `/file/search`,
+        {
+          method: "GET",
+          params,
+        },
+        {
+          ...defaultOpts,
+        },
+      ),
+    );
+  };
+}
+
+export function sendRebuildFTSIndex(req: RebuildFTSIndexWorkflowService): ThunkResponse<TaskResponse> {
+  return async (dispatch, _getState) => {
+    return await dispatch(
+      send(
+        "/workflow/rebuildFtsIndex",
+        {
+          data: req,
+          method: "POST",
+        },
+        {
+          ...defaultOpts,
+        },
+      ),
+    );
+  };
+}
+
 // AI module API
 export function batchDeleteApiKeys(args: BatchIDService): ThunkResponse<void> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/api-key/delete`,
+        `/ai/admin/api-key/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2137,7 +2283,7 @@ export function createApiKey(args: AiApiKey): ThunkResponse<AiApiKey> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/api-key`,
+        `/ai/admin/api-key`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2151,7 +2297,7 @@ export function getApiKeyList(args: AdminListService): ThunkResponse<ListAiApiKe
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/api-key`,
+        `/ai/admin/api-key/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2165,7 +2311,7 @@ export function getApiKeyDetail(id: number): ThunkResponse<AiApiKey> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/api-key/${id}`,
+        `/ai/admin/api-key/${id}`,
         { method: "GET" },
         {
           ...defaultOpts,
@@ -2179,7 +2325,7 @@ export function updateApiKey(args: AiApiKey): ThunkResponse<AiApiKey> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/api-key/${args.id}`,
+        `/ai/admin/api-key/${args.id}`,
         { method: "PUT", data: args },
         {
           ...defaultOpts,
@@ -2193,7 +2339,7 @@ export function deleteApiKey(id: number): ThunkResponse<void> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/api-key/${id}`,
+        `/ai/admin/api-key/${id}`,
         { method: "DELETE" },
         {
           ...defaultOpts,
@@ -2207,7 +2353,7 @@ export function getImageList(args: AdminListService): ThunkResponse<ListAiImageR
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/image/list`,
+        `/ai/admin/image/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2221,7 +2367,7 @@ export function updateImage(id: number, isPublic: boolean): ThunkResponse<void> 
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/image/${id}`,
+        `/ai/admin/image/${id}`,
         { method: "PATCH", data: { isPublic } },
         {
           ...defaultOpts,
@@ -2235,7 +2381,7 @@ export function batchDeleteImages(args: BatchIDService): ThunkResponse<void> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/image/delete`,
+        `/ai/admin/image/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2250,7 +2396,7 @@ export function getImageDetail(id: number): ThunkResponse<AiImage> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/image/${id}`,
+        `/ai/admin/image/${id}`,
         { method: "GET" },
         {
           ...defaultOpts,
@@ -2264,7 +2410,7 @@ export function batchDeleteDocuments(args: BatchIDService): ThunkResponse<void> 
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/document/delete`,
+        `/ai/admin/document/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2279,7 +2425,7 @@ export function getDocumentList(args: AdminListService): ThunkResponse<ListAiKno
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/document/list`,
+        `/ai/admin/document/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2293,7 +2439,7 @@ export function getDocumentDetail(id: number): ThunkResponse<AiKnowledgeDocument
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/document/${id}`,
+        `/ai/admin/document/${id}`,
         { method: "GET" },
         {
            ...defaultOpts,
@@ -2307,7 +2453,7 @@ export function updateDocumentAdmin(args: AiKnowledgeDocument): ThunkResponse<Ai
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/document/${args.id}`,
+        `/ai/admin/document/${args.id}`,
         { method: "PUT", data: args },
         {
            ...defaultOpts,
@@ -2321,7 +2467,7 @@ export function updateDocumentStatus(id: number, status: Status): ThunkResponse<
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/document/${id}/status`,
+        `/ai/admin/document/${id}/status`,
         { method: "PATCH", data: { status } },
         {
           ...defaultOpts,
@@ -2336,7 +2482,7 @@ export function upsertDocument(args: AiKnowledgeDocument): ThunkResponse<AiKnowl
     const method = args.id ? "PUT" : "POST";
     return await dispatch(
       send(
-        `/admin/ai/document${args.id ? `/${args.id}` : ""}`,
+        `/ai/admin/document${args.id ? `/${args.id}` : ""}`,
         { method, data: args },
         {
           ...defaultOpts,
@@ -2350,7 +2496,7 @@ export function getKnowledgeList(args: AdminListService): ThunkResponse<ListAiKn
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/knowledge/list`,
+        `/ai/admin/knowledge/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2364,7 +2510,7 @@ export function getKnowledgeDetail(id: number): ThunkResponse<AiKnowledge> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/knowledge/${id}`,
+        `/ai/admin/knowledge/${id}`,
         { method: "GET" },
         {
            ...defaultOpts,
@@ -2378,7 +2524,7 @@ export function batchDeleteKnowledges(args: BatchIDService): ThunkResponse<void>
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/knowledge/delete`,
+        `/ai/admin/knowledge/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2393,7 +2539,7 @@ export function upsertKnowledge(args: AiKnowledgeModel): ThunkResponse<AiKnowled
     const method = args.id ? "PUT" : "POST";
     return await dispatch(
       send(
-        `/admin/ai/knowledge${args.id ? `/${args.id}` : ""}`,
+        `/ai/admin/knowledge${args.id ? `/${args.id}` : ""}`,
         { method, data: args },
         {
           ...defaultOpts,
@@ -2407,7 +2553,7 @@ export function getSegmentList(args: AdminListService): ThunkResponse<ListAiKnow
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/knowledge/segment/list`,
+        `/ai/admin/segment/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2421,7 +2567,7 @@ export function getSegmentDetail(id: number): ThunkResponse<AiKnowledgeSegment> 
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/knowledge/segment/${id}`,
+        `/ai/admin/segment/${id}`,
         { method: "GET" },
         {
            ...defaultOpts,
@@ -2435,7 +2581,7 @@ export function batchDeleteSegments(args: BatchIDService): ThunkResponse<void> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/knowledge/segment/delete`,
+        `/ai/admin/segment/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2450,7 +2596,7 @@ export function getToolList(args: AdminListService): ThunkResponse<ListAiToolRes
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/tool/list`,
+        `/ai/admin/tool/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2464,7 +2610,7 @@ export function getToolDetail(id: number): ThunkResponse<AiTool> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/tool/${id}`,
+        `/ai/admin/tool/${id}`,
         { method: "GET" },
         {
           ...defaultOpts,
@@ -2478,7 +2624,7 @@ export function createTool(args: AiTool): ThunkResponse<AiTool> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/tool`,
+        `/ai/admin/tool`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2492,7 +2638,7 @@ export function updateTool(args: AiTool): ThunkResponse<AiTool> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/tool/${args.id}`,
+        `/ai/admin/tool/${args.id}`,
         { method: "PUT", data: args },
         {
           ...defaultOpts,
@@ -2506,7 +2652,7 @@ export function deleteTool(id: number): ThunkResponse<void> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/tool/${id}`,
+        `/ai/admin/tool/${id}`,
         { method: "DELETE" },
         {
           ...defaultOpts,
@@ -2520,7 +2666,7 @@ export function batchDeleteTools(args: BatchIDService): ThunkResponse<void> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/tool/delete`,
+        `/ai/admin/tool/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2535,7 +2681,7 @@ export function createModel(args: AiModel): ThunkResponse<AiModel> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/model`,
+        `/ai/admin/model`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2549,7 +2695,7 @@ export function deleteModel(id: number): ThunkResponse<void> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/model/${id}`,
+        `/ai/admin/model/${id}`,
         { method: "DELETE" },
         {
           ...defaultOpts,
@@ -2563,7 +2709,7 @@ export function batchDeleteModels(args: BatchIDService): ThunkResponse<void> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/model/delete`,
+        `/ai/admin/model/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2578,7 +2724,7 @@ export function getModelList(args: AdminListService): ThunkResponse<ListAiModelR
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/model/list`,
+        `/ai/admin/model/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2592,7 +2738,7 @@ export function getModelDetail(id: number): ThunkResponse<AiModel> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/model/${id}`,
+        `/ai/admin/model/${id}`,
         { method: "GET" },
         {
           ...defaultOpts,
@@ -2606,7 +2752,7 @@ export function updateModel(args: AiModel): ThunkResponse<AiModel> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/model/${args.id}`,
+        `/ai/admin/model/${args.id}`,
         { method: "PUT", data: args },
         {
           ...defaultOpts,
@@ -2620,7 +2766,7 @@ export function deleteChatRole(id: number): ThunkResponse<void> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/role/${id}`,
+        `/ai/admin/role/${id}`,
         { method: "DELETE" },
         {
           ...defaultOpts,
@@ -2634,7 +2780,7 @@ export function batchDeleteChatRoles(args: BatchIDService): ThunkResponse<void> 
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/role/delete`,
+        `/ai/admin/role/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2649,7 +2795,7 @@ export function getChatRoleList(args: AdminListService): ThunkResponse<ListAiCha
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/role/list`,
+        `/ai/admin/role/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2678,7 +2824,7 @@ export function upsertRole(args: AiChatRoleModel): ThunkResponse<AiChatRole> {
     const method = args.id ? "PUT" : "POST";
     return await dispatch(
       send(
-        `/admin/ai/role${args.id ? `/${args.id}` : ""}`,
+        `/ai/admin/role${args.id ? `/${args.id}` : ""}`,
         { method, data: args },
         {
           ...defaultOpts,
@@ -2692,7 +2838,7 @@ export function getChatConversationDetail(id: number): ThunkResponse<AiChatConve
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/chat/conversation/${id}`,
+        `/ai/admin/chat/conversation/${id}`,
         { method: "GET" },
         {
           ...defaultOpts,
@@ -2706,7 +2852,7 @@ export function getChatConversationList(args: AdminListService): ThunkResponse<L
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/chat/conversation/list`,
+        `/ai/admin/chat/conversation/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2720,7 +2866,7 @@ export function batchDeleteChatConversations(args: BatchIDService): ThunkRespons
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/chat/conversation/delete`,
+        `/ai/admin/chat/conversation/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2735,7 +2881,7 @@ export function getChatMessageDetail(id: number): ThunkResponse<AiChatMessage> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/chat/message/${id}`,
+        `/ai/admin/chat/message/${id}`,
         { method: "GET" },
         {
           ...defaultOpts,
@@ -2749,7 +2895,7 @@ export function getChatMessageList(args: AdminListService): ThunkResponse<ListAi
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/chat/message/list`,
+        `/ai/admin/chat/message/list`,
         { method: "POST", data: args },
         {
           ...defaultOpts,
@@ -2763,7 +2909,7 @@ export function batchDeleteChatMessages(args: BatchIDService): ThunkResponse<voi
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
-        `/admin/ai/chat/message/delete`,
+        `/ai/admin/chat/message/delete`,
         { method: "POST", data: args },
         {
           ...defaultOpts,

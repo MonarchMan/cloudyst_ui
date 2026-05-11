@@ -1,11 +1,11 @@
-import { Box, FormControl, Grid2 as Grid, ListItemText, SelectChangeEvent, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Grid2 as Grid, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { ChatRoleDialogContext } from "./ChatRoleDialog";
 import SettingForm from "../../../../Pages/Setting/SettingForm";
 import { Status } from "../../../../../api/dashboard";
-import { DenseFilledTextField, DenseSelect } from "../../../../Common/StyledComponents";
-import { SquareMenuItem } from "../../../../FileManager/ContextMenu/ContextMenu";
+import { DenseFilledTextField } from "../../../../Common/StyledComponents";
+import { AiStatusSelect } from "../../AiSelects";
 
 const ChatRoleForm = () => {
   const theme = useTheme();
@@ -15,66 +15,59 @@ const ChatRoleForm = () => {
 
   const onNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRole((prev) => ({ ...prev, name: e.target.value }));
+      setRole((prev) => ({ ...prev, role: { ...prev.role, name: e.target.value } }));
     },
     [setRole],
   );
 
   const onAvatarChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRole((prev) => ({ ...prev, avatar: e.target.value }));
+      setRole((prev) => ({ ...prev, role: { ...prev.role, avatar: e.target.value } }));
     },
     [setRole],
   );
 
   const onDescriptionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRole((prev) => ({ ...prev, description: e.target.value }));
+      setRole((prev) => ({ ...prev, role: { ...prev.role, description: e.target.value } }));
     },
     [setRole],
   );
 
   const onSortChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRole((prev) => ({ ...prev, sort: Number(e.target.value) }));
+      setRole((prev) => ({ ...prev, role: { ...prev.role, sort: Number(e.target.value) } }));
     },
     [setRole],
   );
 
   const onCategoryChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRole((prev) => ({ ...prev, category: e.target.value }));
+      setRole((prev) => ({ ...prev, role: { ...prev.role, category: e.target.value } }));
     },
     [setRole],
   );
 
   const onSystemMessageChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRole((prev) => ({ ...prev, system_message: e.target.value }));
-    },
-    [setRole],
-  );
-
-  const onStatusChange = useCallback(
-    (e: SelectChangeEvent<unknown>) => {
-      setRole((prev) => ({ ...prev, status: Number(e.target.value) as Status }));
+      setRole((prev) => ({ ...prev, role: { ...prev.role, system_message: e.target.value } }));
     },
     [setRole],
   );
 
   return (
-    <Box>
+    <Box component={"form"} ref={formRef} onSubmit={(e) => e.preventDefault()}>
       <Grid container spacing={isMobile ? 2 : 3} alignItems={"stretch"}>
         <SettingForm title={t("role.id")} noContainer lgWidth={2}>
-          <DenseFilledTextField fullWidth value={values.id} slotProps={{ htmlInput: { readOnly: true } }} />
+          <DenseFilledTextField fullWidth value={values.role.id} slotProps={{ htmlInput: { readOnly: true } }} />
         </SettingForm>
 
         <SettingForm title={t("role.name")} noContainer lgWidth={6}>
-          <DenseFilledTextField fullWidth value={values.name} required onChange={onNameChange} />
+          <DenseFilledTextField fullWidth value={values.role.name} required onChange={onNameChange} />
         </SettingForm>
 
         <SettingForm title={t("role.avatar")} noContainer lgWidth={6}>
-          <DenseFilledTextField fullWidth value={values.avatar} onChange={onAvatarChange} />
+          <DenseFilledTextField fullWidth value={values.role.avatar} onChange={onAvatarChange} />
         </SettingForm>
 
         <SettingForm title={t("role.sort")} noContainer lgWidth={6}>
@@ -86,17 +79,17 @@ const ChatRoleForm = () => {
                 min: 0,
               },
             }}
-            value={values.sort ?? 0}
+            value={values.role.sort ?? 0}
             onChange={onSortChange}
           />
         </SettingForm>
 
         <SettingForm title={t("role.category")} noContainer lgWidth={6}>
-          <DenseFilledTextField fullWidth value={values.category} onChange={onCategoryChange} />
+          <DenseFilledTextField fullWidth value={values.role.category} onChange={onCategoryChange} />
         </SettingForm>
 
         <SettingForm title={t("role.description")} noContainer lgWidth={12}>
-          <DenseFilledTextField fullWidth multiline rows={3} value={values.description} onChange={onDescriptionChange} />
+          <DenseFilledTextField fullWidth multiline rows={3} value={values.role.description} onChange={onDescriptionChange} />
         </SettingForm>
 
         <SettingForm title={t("role.systemMessage")} noContainer lgWidth={12}>
@@ -104,34 +97,24 @@ const ChatRoleForm = () => {
             fullWidth
             multiline
             rows={4}
-            value={values.system_message}
+            value={values.role.system_message}
             onChange={onSystemMessageChange}
           />
         </SettingForm>
 
         <SettingForm title={t("role.status")} noContainer lgWidth={6}>
-          <FormControl fullWidth>
-            <DenseSelect value={values.status} onChange={onStatusChange}>
-              <SquareMenuItem value={1}>
-                <ListItemText slotProps={{ primary: { variant: "body2" } }}>
-                  {t("common.status_active")}
-                </ListItemText>
-              </SquareMenuItem>
-              <SquareMenuItem value={2}>
-                <ListItemText slotProps={{ primary: { variant: "body2" } }}>
-                  {t("common.status_inactive")}
-                </ListItemText>
-              </SquareMenuItem>
-            </DenseSelect>
-          </FormControl>
+          <AiStatusSelect
+            value={values.role.status}
+            onChange={(status) => setRole((prev) => ({ ...prev, role: { ...prev.role, status: status as Status } }))}
+          />
         </SettingForm>
 
         <SettingForm title={t("role.createdAt")} noContainer lgWidth={6}>
-          <DenseFilledTextField fullWidth value={values.created_at} slotProps={{ htmlInput: { readOnly: true } }} />
+          <DenseFilledTextField fullWidth value={values.role.created_at} slotProps={{ htmlInput: { readOnly: true } }} />
         </SettingForm>
 
         <SettingForm title={t("role.updatedAt")} noContainer lgWidth={6}>
-          <DenseFilledTextField fullWidth value={values.updated_at} slotProps={{ htmlInput: { readOnly: true } }} />
+          <DenseFilledTextField fullWidth value={values.role.updated_at} slotProps={{ htmlInput: { readOnly: true } }} />
         </SettingForm>
       </Grid>
     </Box>

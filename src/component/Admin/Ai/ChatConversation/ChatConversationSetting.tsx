@@ -32,14 +32,9 @@ import PageContainer from "../../../Pages/PageContainer";
 import PageHeader from "../../../Pages/PageHeader";
 import TablePagination from "../../Common/TablePagination";
 import { OrderByQuery, OrderDirectionQuery, PageQuery, PageSizeQuery } from "../../StoragePolicy/StoragePolicySetting";
+import { AdminAiQuery, AiTableColumnWidth, buildConditions } from "../constants";
 import ChatConversationFilterPopover from "./ChatConversationFilterPopover";
 import ChatConversationRow from "./ChatConversationRow";
-
-export const TitleQuery = "title";
-export const PinnedQuery = "pinned";
-export const UserIdQuery = "user_id";
-export const RoleIdQuery = "role_id";
-export const ModelIdQuery = "model_id";
 
 const ChatConversationSetting = () => {
   const { t } = useTranslation("dashboard");
@@ -56,11 +51,11 @@ const ChatConversationSetting = () => {
     defaultValue: "",
   });
   const [orderDirection, setOrderDirection] = useQueryState(OrderDirectionQuery, { defaultValue: "desc" });
-  const [title, setTitle] = useQueryState(TitleQuery, { defaultValue: "" });
-  const [pinned, setPinned] = useQueryState(PinnedQuery, { defaultValue: "" });
-  const [userId, setUserId] = useQueryState(UserIdQuery, { defaultValue: "" });
-  const [roleId, setRoleId] = useQueryState(RoleIdQuery, { defaultValue: "" });
-  const [modelId, setModelId] = useQueryState(ModelIdQuery, { defaultValue: "" });
+  const [title, setTitle] = useQueryState(AdminAiQuery.conversation.title, { defaultValue: "" });
+  const [pinned, setPinned] = useQueryState(AdminAiQuery.conversation.pinned, { defaultValue: "" });
+  const [userId, setUserId] = useQueryState(AdminAiQuery.common.userId, { defaultValue: "" });
+  const [roleId, setRoleId] = useQueryState(AdminAiQuery.common.roleId, { defaultValue: "" });
+  const [modelId, setModelId] = useQueryState(AdminAiQuery.common.modelId, { defaultValue: "" });
   const [count, setCount] = useState(0);
   const [selected, setSelected] = useState<readonly number[]>([]);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -98,13 +93,13 @@ const ChatConversationSetting = () => {
         page_size: pageSizeInt,
         order_by: orderBy ?? "",
         order_direction: orderDirection ?? "desc",
-        conditions: {
-          title: title,
-          pinned: pinned,
+        conditions: buildConditions({
+          title,
+          pinned,
           user_id: userId,
           role_id: roleId,
           model_id: modelId,
-        },
+        }),
       }),
     )
       .then((res) => {
@@ -235,7 +230,7 @@ const ChatConversationSetting = () => {
           <Table size="small" stickyHeader sx={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={50}>
+                <TableCell padding="checkbox" sx={{ width: "36px!important" }} width={AiTableColumnWidth.checkbox}>
                   <Checkbox
                     size="small"
                     disableRipple
@@ -245,21 +240,21 @@ const ChatConversationSetting = () => {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                <NoWrapTableCell width={60} sortDirection={orderById ? direction : false}>
+                <NoWrapTableCell width={AiTableColumnWidth.id} sortDirection={orderById ? direction : false}>
                   <TableSortLabel active={orderById} direction={direction} onClick={onSortClick("id")}>
                     {t("group.#")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={200}>
+                <NoWrapTableCell width={AiTableColumnWidth.extraLongText}>
                   <TableSortLabel active={orderBy === "title"} direction={direction} onClick={onSortClick("title")}>
                     {t("conversation.title")}
                   </TableSortLabel>
                 </NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("conversation.pinned")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("conversation.userId")}</NoWrapTableCell>
-                <NoWrapTableCell width={80}>{t("conversation.roleId")}</NoWrapTableCell>
-                <NoWrapTableCell width={150}>{t("conversation.model")}</NoWrapTableCell>
-                <NoWrapTableCell width={100} align="right"></NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>{t("conversation.pinned")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>{t("conversation.userId")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.compact}>{t("conversation.roleId")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.longText}>{t("conversation.model")}</NoWrapTableCell>
+                <NoWrapTableCell width={AiTableColumnWidth.action} align="right"></NoWrapTableCell>
               </TableRow>
             </TableHead>
             <TableBody>

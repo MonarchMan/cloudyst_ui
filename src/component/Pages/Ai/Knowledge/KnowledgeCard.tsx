@@ -1,12 +1,13 @@
 import { Button, Card, CardContent, Chip, Collapse, Divider, Stack, Typography } from "@mui/material";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { DocumentProgress, GetDocumentResponse, GetKnowledgeResponse, GetKnowledgeStatsResponse } from "../../../../api/ai.ts";
+import { GetDocumentResponse, GetKnowledgeResponse, GetKnowledgeStatsResponse } from "../../../../api/ai.ts";
 import Book from "../../../Icons/Book.tsx";
 import ChevronRight from "../../../Icons/ChevronRight.tsx";
 import Sparkle from "../../../Icons/Sparkle.tsx";
 import KnowledgeDocumentList from "./KnowledgeDocumentList.tsx";
 import KnowledgeDocumentToolbar, { DocumentFilterValue, DocumentSortValue } from "./KnowledgeDocumentToolbar.tsx";
+import { DocumentProgress } from "../../../../api/dashboard.ts";
 
 interface KnowledgeCardProps {
   knowledge: GetKnowledgeResponse;

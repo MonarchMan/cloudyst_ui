@@ -1,5 +1,5 @@
 import { PaginationArgs, PaginationResults } from "./common.ts";
-import { OrderDirection, Status } from "./dashboard.ts";
+import { DocumentProgress, OrderDirection, Status } from "./dashboard.ts";
 
 // Conversation APIs
 export interface CreateChatConversationRequest {
@@ -13,6 +13,7 @@ export interface GetChatConversationResponse {
   title: string;
   pinned: boolean;
   system_message: string;
+  model_id: string;
   model: string;
   temperature: number;
   max_tokens: number;
@@ -72,7 +73,7 @@ export interface MessageRecord {
   web_pages?: WebPage[];
   created_at: string;
   attachment_urls?: string[];
-  parent_send_id?: string;
+  reply_id?: string;
   status?: MessageStatus;
   error_message?: string;
   use_context?: boolean;
@@ -239,13 +240,6 @@ export interface GetDocumentResponse {
   created_at: string;
   updated_at: string;
 }
-
-export enum DocumentProgress {
-  Pending = "pending",
-  Processing = "processing",
-  Success = "success",
-  Failed = "failed",
-} 
 export interface GetDocumentProgressResponse {
   id: string;
   name: string;
@@ -335,6 +329,7 @@ export interface ReindexDocumentResponse {
 export interface GetModelResponse {
   id: string;
   name: string;
+  model: string;
   platform: string;
   temperature: number;
   max_tokens: number;

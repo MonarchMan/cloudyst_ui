@@ -170,6 +170,38 @@ export const router = createBrowserRouter([
                 },
               },
               {
+                path: "ai",
+                element: <Navigate to={"/admin/ai/model"} />,
+              },
+              {
+                path: "ai/model",
+                async lazy() {
+                  let { ModelSetting } = await import("../component/Admin/AdminBundle.tsx");
+                  return { Component: ModelSetting };
+                },
+              },
+              {
+                path: "ai/api-key",
+                async lazy() {
+                  let { ApiKeySetting } = await import("../component/Admin/AdminBundle.tsx");
+                  return { Component: ApiKeySetting };
+                },
+              },
+              {
+                path: "ai/knowledge",
+                async lazy() {
+                  let { KnowledgeSetting } = await import("../component/Admin/AdminBundle.tsx");
+                  return { Component: KnowledgeSetting };
+                },
+              },
+              {
+                path: "ai/document",
+                async lazy() {
+                  let { DocumentSetting } = await import("../component/Admin/AdminBundle.tsx");
+                  return { Component: DocumentSetting };
+                },
+              },
+              {
                 path: "ai/segment",
                 async lazy() {
                   let { KnowledgeSegmentSetting } = await import("../component/Admin/AdminBundle.tsx");
@@ -264,6 +296,17 @@ export const router = createBrowserRouter([
           },
           {
             path: "/ai",
+            element: <Navigate to={"/ai/chat"} />,
+          },
+          {
+            path: "/ai/chat",
+            async lazy() {
+              let { AiPage } = await import("../component/Pages/Pages");
+              return { Component: AiPage };
+            },
+          },
+          {
+            path: "/ai/knowledge",
             async lazy() {
               let { AiPage } = await import("../component/Pages/Pages");
               return { Component: AiPage };

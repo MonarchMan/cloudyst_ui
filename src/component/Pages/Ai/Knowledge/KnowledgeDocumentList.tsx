@@ -15,10 +15,11 @@ import {
 import dayjs from "dayjs";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { DocumentProgress, GetDocumentResponse } from "../../../../api/ai.ts";
+import { GetDocumentResponse } from "../../../../api/ai.ts";
 import { CrUriPrefix } from "../../../../util/uri.ts";
 import Delete from "../../../Icons/Delete.tsx";
 import ArrowSync from "../../../Icons/ArrowSync.tsx";
+import { DocumentProgress } from "../../../../api/dashboard.ts";
 
 interface KnowledgeDocumentListProps {
   loading: boolean;
